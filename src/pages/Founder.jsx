@@ -21,10 +21,10 @@ export default function Founder() {
             Where structural dexterity meets rock-solid principles.
           </p>
           <div className="founder__chips">
-            <span className="founder__chip">Cannabis Industry</span>
+            <span className="founder__chip">Cannabis Professional</span>
             <span className="founder__chip">⚓ Navy Veteran</span>
-            <span className="founder__chip">Co-Founder, Fenway</span>
-            <span className="founder__chip">Regional Lead, FaM NY Co.</span>
+            <span className="founder__chip">Industry Advocate</span>
+            <span className="founder__chip">Ethics &amp; Community Standards</span>
             <span className="founder__chip">Western New York</span>
           </div>
         </div>
@@ -34,9 +34,9 @@ export default function Founder() {
       <div className="founder__stats">
         {[
           { n: "15+", l: "Yrs in Cannabis" },
-          { n: "2",   l: "Co-Founded" },
+          { n: "WNY", l: "Home Base" },
           { n: "USN", l: "Navy Veteran" },
-          { n: "WNY", l: "Regional Lead" },
+          { n: "100%", l: "Community First" },
           { n: "∞",   l: "Rock-Solid Takes" },
         ].map((s) => (
           <div key={s.l} className="founder__stat">
@@ -59,15 +59,16 @@ export default function Founder() {
               foundations while everyone else was still reading the blueprint.
             </p>
             <p>
-              Co-founder of Fenway. Regional Lead at FaM NY Co. dispensary.
-              Cannabis SEO architect. Legislative advocate. NY cannabis legislation
-              expert. The man has more layers than the geological record his last name
-              implies, and somehow none of them are limestone. We asked. He confirmed.
+              Cannabis professional. Industry advocate. Enthusiast of the highest order.
+              Cannabis SEO architect. The man has more layers than the geological record
+              his last name implies, and somehow none of them are limestone.
+              We asked. He confirmed.
             </p>
             <p>
-              His expertise spans the full spectrum: ethics, legalization, compliance,
-              legislation — the kind of market intelligence that only comes from being
-              in the room, or the grow room, when the decisions were being made.
+              His expertise spans the full spectrum: ethics, community standards,
+              legalization, compliance, legislation — the kind of principled market
+              intelligence that only comes from being in the room, or the grow room,
+              when the decisions were being made, and actually caring how they land.
             </p>
           </div>
           <div className="founder__photo-wrap">
@@ -102,8 +103,8 @@ export default function Founder() {
           <h2 className="founder__h2">Chiseled From <em>Experience</em></h2>
           <div className="founder__creds">
             {[
-              { icon: "🏗️", title: "Co-Founder, Fenway", body: "Built from the ground up. Because that's what you do when your name is Girdlestone — you start with the foundation and you do not cut corners on the rebar." },
-              { icon: "📍", title: "Regional Lead · FaM NY Co.", body: "Holding down Western New York's cannabis corridor with the quiet authority of someone who's been here the whole time. Because he has." },
+              { icon: "🏗️", title: "Cannabis Professional", body: "Years working within the industry before it was fashionable. Built from the ground up. Because that's what you do when your name is Girdlestone — you start with the foundation." },
+              { icon: "📍", title: "Industry Advocate", body: "Holding down Western New York's cannabis corridor with the quiet authority of someone who's been here the whole time. Because he has — and he gives a damn about how it goes." },
               { icon: "🔍", title: "Cannabis SEO Pioneer", body: "Before the algorithms knew what to do with cannabis, John was telling them how. Medical. Recreational. He's fluent in both — and the legislation between them." },
               { icon: "⚖️", title: "Legislation & Ethics", body: "Years advocating for responsible NY legalization. Knows the regulatory landscape the way a geologist knows strata — by pressure, depth, and time." },
               { icon: "🌿", title: "Mycana Co-Founder", body: "The industry knowledge behind the profile engine. He knew exactly what was missing from cannabis discovery before we built the thing that fills the gap." },
