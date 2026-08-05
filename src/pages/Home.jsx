@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import BiSlider from '../components/BiSlider.jsx';
+import EngagementCounter from '../components/EngagementCounter.jsx';
 
 const DEMO_SLIDERS = [
   {
@@ -101,6 +102,7 @@ export default function Home() {
           {!user && (
             <p className="hero__footnote">Sign in with Google · Takes under 3 minutes</p>
           )}
+          <EngagementCounter />
         </div>
         <div className="hero__preview">
           <div className="hero__card">

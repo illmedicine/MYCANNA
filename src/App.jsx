@@ -9,6 +9,7 @@ import VendorRegister from "./pages/VendorRegister.jsx";
 import LogExperience from "./pages/LogExperience.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 import Founder from "./pages/Founder.jsx";
+import LiveActivity from "./components/LiveActivity.jsx";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -20,6 +21,7 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
+      <LiveActivity />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
