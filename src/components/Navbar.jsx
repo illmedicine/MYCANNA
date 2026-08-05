@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { to: "/discover",   label: "Discover",    icon: "🗺️" },
   { to: "/leaderboard",label: "Leaderboard", icon: "🏆" },
   { to: "/log",        label: "Log",         icon: "📝", protected: true },
+  { to: "/founder",    label: "Meet John",   icon: "🪨" },
 ];
 
 export default function Navbar() {

@@ -8,6 +8,7 @@ import Discover from "./pages/Discover.jsx";
 import VendorRegister from "./pages/VendorRegister.jsx";
 import LogExperience from "./pages/LogExperience.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
+import Founder from "./pages/Founder.jsx";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ function AppRoutes() {
         <Route path="/discover" element={<Discover />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/vendor/register" element={<VendorRegister />} />
+        <Route path="/founder" element={<Founder />} />
         <Route path="/assessment" element={<ProtectedRoute><Assessment /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/log" element={<ProtectedRoute><LogExperience /></ProtectedRoute>} />
