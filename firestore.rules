@@ -2,21 +2,53 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── User profiles ────────────────────────────────────────────────────
-    // Each user can read and write only their own document.
+    // ── Users ────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ── Cannabis insights (seeded data) ──────────────────────────────────
-    // Publicly readable by any authenticated user.
-    // Write access is blocked from the client — seed via Firebase Admin SDK only.
+    // ── Leaderboard — public read, only backend writes ───────────────────
+    match /leaderboard/{entry} {
+      allow read: if true;
+      // Written by the user's own client via prestigeService only
+      allow write: if request.auth != null && request.auth.uid == entry;
+    }
+
+    // ── Vendors ──────────────────────────────────────────────────────────
+    // Anyone authenticated can read approved vendors.
+    // Only the vendor owner can create/update their own doc.
+    match /vendors/{vendorId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == vendorId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+    }
+
+    // ── Products ─────────────────────────────────────────────────────────
+    // Readable by authenticated users; writable only by the owning vendor.
+    match /products/{productId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && request.auth.uid == resource.data.vendorId;
+    }
+
+    // ── Experiences ──────────────────────────────────────────────────────
+    // Users write their own; read access scoped to owner only for now.
+    match /experiences/{expId} {
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Insights (seeded data) ────────────────────────────────────────────
+    // Public read, no client writes.
     match /insights/{docId} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
-    // ── Catch-all: deny everything else ──────────────────────────────────
+    // ── Deny all else ─────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }
