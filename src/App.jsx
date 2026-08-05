@@ -23,7 +23,7 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/vendor/register" element={<ProtectedRoute><VendorRegister /></ProtectedRoute>} />
+        <Route path="/vendor/register" element={<VendorRegister />} />
         <Route path="/assessment" element={<ProtectedRoute><Assessment /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/log" element={<ProtectedRoute><LogExperience /></ProtectedRoute>} />

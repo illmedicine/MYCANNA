@@ -34,8 +34,36 @@ const TIERS = [
 const NY_LICENSE_PATTERN = /^[A-Z0-9\-]{5,30}$/i;
 
 export default function VendorRegister() {
-  const { user } = useAuth();
+  const { user, signIn, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Show sign-in gate if not authenticated
+  if (loading) return <div className="app-loading">🌿</div>;
+
+  if (!user) {
+    return (
+      <div className="vr-signin-gate">
+        <div className="vr-signin-gate__card">
+          <div className="vr-signin-gate__icon">🏪</div>
+          <h2>List Your Dispensary on Mycana</h2>
+          <p>
+            Sign in with Google to create your vendor account. Your store will be
+            connected to your profile and visible to thousands of WNY cannabis consumers
+            matched to your products.
+          </p>
+          <button
+            className="btn btn--primary btn--lg"
+            onClick={async () => { try { await signIn(); } catch (e) { console.error(e); } }}
+          >
+            Sign in with Google to Continue
+          </button>
+          <button className="btn btn--outline" onClick={() => navigate("/discover")}>
+            ← Back to Discover
+          </button>
+        </div>
+      </div>
+    );
+  }
   const [step, setStep] = useState(1); // 1=info, 2=tier, 3=submitted
   const [saving, setSaving] = useState(false);
   const [selectedTier, setSelectedTier] = useState("free");

@@ -581,6 +581,12 @@ input { font-family: inherit; }
 .nav-menu__signout { color: #dc2626; margin-top: 8px; border-top: 1px solid var(--c-border); padding-top: 14px; }
 
 /* ─── Vendor Register ────────────────────────────────────────────────────── */
+.vr-signin-gate { min-height: calc(100dvh - var(--nav-h)); display: flex; align-items: center; justify-content: center; padding: 40px 20px; background: var(--c-bg); }
+.vr-signin-gate__card { background: #fff; border: 1px solid var(--c-border); border-radius: var(--r-xl); padding: 40px 28px; max-width: 460px; text-align: center; box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 16px; }
+.vr-signin-gate__icon { font-size: 3rem; }
+.vr-signin-gate__card h2 { font-family: var(--font-display); font-size: 1.6rem; }
+.vr-signin-gate__card p { color: var(--c-text-muted); line-height: 1.7; font-size: .9rem; }
+
 .vr-page { min-height: calc(100dvh - var(--nav-h)); }
 .vr-header {
   background: var(--c-bg-dark); color: #fff; padding: 48px 20px 36px;
