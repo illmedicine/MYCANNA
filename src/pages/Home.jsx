@@ -43,6 +43,35 @@ const DEMO_SLIDERS = [
   },
 ];
 
+const SLIDER_INSIGHTS = {
+  effect: [
+    { max: 20,  text: 'Deep relaxation mode — ideal for unwinding, sleep, and stress relief. Look for indica-dominant strains.' },
+    { max: 40,  text: 'Leaning relaxed — great for creative calm, light social settings, or evening decompression.' },
+    { max: 60,  text: 'Right in the middle — balanced hybrids with versatile terpene profiles will serve you well.' },
+    { max: 80,  text: 'Leaning energizing — sativa-dominant strains with limonene and pinene will match your vibe.' },
+    { max: 100, text: 'Full energy mode — sativas and uplifting hybrids are your lane. Great for daytime or exercise.' },
+  ],
+  thc: [
+    { max: 20,  text: 'Very THC-sensitive — low-dose products and CBD-forward ratios are your best friend. Start at 2–5mg.' },
+    { max: 40,  text: 'Moderate sensitivity — start low and go slow. Mid-CBD strains will soften the edge of THC.' },
+    { max: 60,  text: 'Average tolerance — you can explore standard potencies. Terpenes will be your differentiator.' },
+    { max: 80,  text: 'Good tolerance — a wider range of potencies is comfortable. Lean into terpene complexity.' },
+    { max: 100, text: 'High tolerance — potency alone won\'t move you much. Focus on unique terpene profiles for variety.' },
+  ],
+  anxiety: [
+    { max: 20,  text: 'High anxiety risk — prioritize CBD-dominant strains and calming terpenes like linalool and myrcene.' },
+    { max: 40,  text: 'Mild anxiety risk — balanced CBD:THC ratios and myrcene-heavy strains will help soften paranoia risk.' },
+    { max: 60,  text: 'Low anxiety risk — most balanced hybrids work well. Avoid very high-THC strains to stay comfortable.' },
+    { max: 80,  text: 'Anxiety-resilient — you tolerate THC well psychologically. Explore with confidence.' },
+    { max: 100, text: 'Anxiety-resistant — sativas and high-THC strains are accessible to you without much concern.' },
+  ],
+};
+
+function getSliderInsight(id, value) {
+  const tiers = SLIDER_INSIGHTS[id];
+  return tiers.find((t) => value <= t.max)?.text ?? tiers[tiers.length - 1].text;
+}
+
 const FACTORS = [
   { icon: '🧬', title: 'THC Sensitivity', desc: 'Your personal reaction to THC — not just the percentage on the label.' },
   { icon: '🌿', title: 'CBD Balance', desc: 'The ratio of CBD to THC dramatically changes how you feel.' },
@@ -172,23 +201,32 @@ export default function Home() {
               <span className="demo-card__note">These are just examples — your real assessment saves your answers</span>
             </div>
             {DEMO_SLIDERS.map((s) => (
-              <BiSlider
-                key={s.id}
-                {...s}
-                value={demoValues[s.id]}
-                onChange={(v) => setDemoValues((p) => ({ ...p, [s.id]: v }))}
-              />
+              <div key={s.id} className="demo-slider-row">
+                <BiSlider
+                  {...s}
+                  value={demoValues[s.id]}
+                  onChange={(v) => setDemoValues((p) => ({ ...p, [s.id]: v }))}
+                />
+                <div className="demo-slider-insight">
+                  <span className="demo-slider-insight__dot" />
+                  <span className="demo-slider-insight__text">
+                    {getSliderInsight(s.id, demoValues[s.id])}
+                  </span>
+                </div>
+              </div>
             ))}
             <div className="demo-card__insight">
-              <span className="demo-card__insight-icon">💡</span>
+              <span className="demo-card__insight-icon">🧬</span>
               <p className="demo-card__insight-text">
-                {demoValues.anxiety < 35
-                  ? 'Based on your anxiety profile, you\'d benefit from strains high in CBD and linalool terpenes to counterbalance THC.'
+                {demoValues.anxiety < 30 && demoValues.effect < 45
+                  ? 'Your profile suggests a calm, low-key experience — CBD-rich indicas with linalool are your best match.'
+                  : demoValues.anxiety < 30
+                  ? 'Despite your energetic lean, prioritize CBD balance to keep anxiety in check. Look for limonene + CBD combos.'
+                  : demoValues.effect > 65 && demoValues.thc > 55
+                  ? 'High-energy, high-tolerance profile — you\'re built for sativas. Pinene and limonene-forward strains are your lane.'
                   : demoValues.effect < 40
-                  ? 'Your relaxing preference pairs well with myrcene-rich indica-dominant hybrids for evening use.'
-                  : demoValues.thc > 60
-                  ? 'Your higher tolerance means you can explore a wider range of potencies — focus on terpenes for variety.'
-                  : 'A balanced hybrid with moderate THC and a rich terpene profile will suit your preferences well.'}
+                  ? 'Relaxation-first with solid tolerance — myrcene-rich hybrids for evening calm are your sweet spot.'
+                  : 'Balanced profile — a versatile hybrid with a rich terpene mix will consistently work well for you.'}
               </p>
             </div>
           </div>

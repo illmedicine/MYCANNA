@@ -1057,6 +1057,33 @@ input { font-family: inherit; }
   .founder__hero-name { font-size: clamp(3.5rem, 18vw, 8rem); }
 }
 
+/* ─── Demo Slider Per-Row Insights ──────────────────────────────────────── */
+.demo-slider-row { display: flex; flex-direction: column; }
+.demo-slider-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 4px 16px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 4px;
+  animation: insight-fade .25s ease;
+}
+.demo-slider-row:last-of-type .demo-slider-insight { border-bottom: none; }
+@keyframes insight-fade {
+  from { opacity: .4; transform: translateY(3px); }
+  to   { opacity: 1;  transform: translateY(0); }
+}
+.demo-slider-insight__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c-primary-mid);
+  margin-top: 6px; flex-shrink: 0;
+}
+.demo-slider-insight__text {
+  font-size: .8rem;
+  color: var(--c-text-muted);
+  line-height: 1.55;
+}
+
 /* ─── Live Activity Toast ────────────────────────────────────────────────── */
 .live-toast {
   position: fixed;
