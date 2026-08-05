@@ -178,7 +178,9 @@ export default function Founder() {
               him. The kind of friend you can call, and who picks up.
             </p>
             <p>
-              DeMarkus Wilson — the creator of Mycana and founder of{" "}
+              John is the owner, co-founder, and visionary of Mycana — the mind
+              behind the concept and the reason this platform exists.
+              DeMarkus Wilson of{" "}
               <a
                 href="https://www.illyrobotic-ai.com/"
                 target="_blank"
@@ -187,10 +189,9 @@ export default function Founder() {
               >
                 illyRobotic Instruments
               </a>{" "}
-              — has known John for years and will tell you without hesitation that
-              building this platform for John is an honor. That&apos;s not marketing copy.
-              That&apos;s just what happens when the right person asks you to build
-              something worth building.
+              built it — and will tell you without hesitation that building John&apos;s
+              vision is an honor. That&apos;s not marketing copy. That&apos;s just what
+              happens when the right person has the right idea.
             </p>
             <p>
               Two kids. Years of hard-won expertise. A beard that has clearly achieved
@@ -234,7 +235,7 @@ export default function Founder() {
             >
               illyRobotic Instruments
             </a>
-            {" "}&nbsp;&middot;&nbsp; Proud to Build This
+            {" "}&nbsp;&middot;&nbsp; Proud to Build John&apos;s Vision
           </div>
         </div>
       </blockquote>
@@ -243,7 +244,8 @@ export default function Founder() {
       <footer className="founder__footer">
         <div className="founder__footer-brand">🌿 Mycana</div>
         <div className="founder__footer-credit">
-          Conceived &amp; built by{" "}
+          Conceived by <strong style={{color:'var(--fo-acc-lt)'}}>John Girdlestone</strong>
+          {" "}· Built by{" "}
           <a
             href="https://www.illyrobotic-ai.com/"
             target="_blank"
