@@ -33,7 +33,7 @@ export default function Founder() {
       {/* STAT STRIP */}
       <div className="founder__stats">
         {[
-          { n: "15+", l: "Yrs in Cannabis" },
+          { n: "WNY", l: "Cannabis Advocate" },
           { n: "WNY", l: "Home Base" },
           { n: "USN", l: "Navy Veteran" },
           { n: "100%", l: "Community First" },
@@ -54,9 +54,9 @@ export default function Founder() {
             <h2 className="founder__h2">The <em>Bedrock</em><br />Credentials</h2>
             <p>
               Some people build on solid ground. John Girdlestone <em>is</em> the solid
-              ground. With years in the cannabis industry before it was fashionable —
-              and frankly, before half of it was even legal — John has been laying
-              foundations while everyone else was still reading the blueprint.
+              ground. Since New York opened the door, John has been one of the people
+              who walked through it knowing exactly what to build — because he had
+              already spent years studying the landscape before it was even legal to.
             </p>
             <p>
               Cannabis professional. Industry advocate. Enthusiast of the highest order.
@@ -194,7 +194,7 @@ export default function Founder() {
               happens when the right person has the right idea.
             </p>
             <p>
-              Two kids. Years of hard-won expertise. A beard that has clearly achieved
+              Two kids. Deep, hard-won expertise. A beard that has clearly achieved
               sentience and made its own decisions about direction. A father who also
               served. The man contains multitudes. Mostly igneous.
             </p>
