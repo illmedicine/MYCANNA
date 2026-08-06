@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import BiSlider from '../components/BiSlider.jsx';
 import EngagementCounter from '../components/EngagementCounter.jsx';
