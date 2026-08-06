@@ -287,6 +287,10 @@ export default function Home() {
 
       <footer className="footer">
         <p>© 2025 Mycana · For educational purposes only · Not medical advice</p>
+        <p style={{ marginTop: '8px', fontSize: '.72rem', opacity: '.5' }}>
+          <Link to="/investors" style={{ color: 'inherit', textDecoration: 'underline' }}>Investor Overview</Link>
+          {' · '}A product of <a href="https://www.illyrobotic-ai.com" style={{ color: 'inherit', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Illy Robotic Instruments</a>
+        </p>
       </footer>
     </main>
   );
