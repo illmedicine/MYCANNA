@@ -172,7 +172,7 @@ export default function Assessment() {
         const fullProfile = { ...answers, consumptionPrefs };
         await saveProfile(user.id, fullProfile);
         setSavedProfile(fullProfile);
-        navigate("/profile");
+        navigate("/dashboard");
       } catch (err) {
         console.error("Failed to save profile", err);
         setSaving(false);

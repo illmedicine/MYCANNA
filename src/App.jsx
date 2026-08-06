@@ -9,6 +9,7 @@ import VendorRegister from "./pages/VendorRegister.jsx";
 import LogExperience from "./pages/LogExperience.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 import Founder from "./pages/Founder.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 import LiveActivity from "./components/LiveActivity.jsx";
 
 function ProtectedRoute({ children }) {
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="/vendor/register" element={<VendorRegister />} />
         <Route path="/founder" element={<Founder />} />
         <Route path="/assessment" element={<ProtectedRoute><Assessment /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/log" element={<ProtectedRoute><LogExperience /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />

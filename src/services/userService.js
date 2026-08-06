@@ -70,3 +70,16 @@ export async function saveProfile(uid, answers) {
     { merge: true }
   );
 }
+
+export async function saveHealthData(uid, healthData) {
+  await setDoc(
+    doc(db, "users", uid),
+    { healthData, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+export async function getHealthData(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? (snap.data().healthData ?? null) : null;
+}

@@ -57,6 +57,13 @@ export async function awardPrestige(uid, points, reason) {
   );
 }
 
+export async function getUserPrestige(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  if (!snap.exists()) return { points: 0 };
+  const data = snap.data();
+  return { points: data.prestigePoints ?? 0, level: data.prestigeLevel ?? LEVELS[0].title };
+}
+
 export async function getLeaderboard(n = 50) {
   const q = query(
     collection(db, "leaderboard"),

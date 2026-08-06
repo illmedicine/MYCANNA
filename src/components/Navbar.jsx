@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 
 const NAV_LINKS = [
   { to: "/discover",   label: "Discover",    icon: "🗺️" },
+  { to: "/dashboard",  label: "Dashboard",   icon: "🧬", protected: true },
   { to: "/leaderboard",label: "Leaderboard", icon: "🏆" },
   { to: "/log",        label: "Log",         icon: "📝", protected: true },
 ];
@@ -79,6 +80,9 @@ export default function Navbar() {
               ))}
               {user && (
                 <>
+                  <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
+                    <span>🧬</span> My Dashboard
+                  </Link>
                   <Link to="/profile" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>👤</span> My Profile
                   </Link>
