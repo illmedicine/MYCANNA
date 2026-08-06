@@ -127,29 +127,51 @@ const QUESTIONS = [
   },
 ];
 
+const CONSUMPTION_METHODS = [
+  { id: "flower",       icon: "🌿", label: "Flower",       desc: "Classic, full-spectrum experience" },
+  { id: "vape",         icon: "💨", label: "Vape",         desc: "Discreet, portable, fast onset" },
+  { id: "edibles",      icon: "🍫", label: "Edibles",      desc: "Longer duration, no smoke" },
+  { id: "concentrates", icon: "💎", label: "Concentrates", desc: "High potency, fast onset" },
+  { id: "tinctures",    icon: "🧪", label: "Tinctures",    desc: "Precise dosing, sublingual" },
+  { id: "topicals",     icon: "🧴", label: "Topicals",     desc: "Localized, non-psychoactive" },
+];
+
+const TOTAL_STEPS = QUESTIONS.length + 1; // 8 factors + consumption prefs
+
 export default function Assessment() {
   const { user, savedProfile, setSavedProfile } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  // Pre-fill from any existing Firestore profile
   const [answers, setAnswers] = useState(() =>
     Object.fromEntries(
       QUESTIONS.map((q) => [q.id, savedProfile?.[q.id] ?? q.defaultValue])
     )
   );
 
-  const q = QUESTIONS[currentStep];
-  const isLast = currentStep === QUESTIONS.length - 1;
-  const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
+  const [consumptionPrefs, setConsumptionPrefs] = useState(
+    () => savedProfile?.consumptionPrefs ?? []
+  );
+
+  const isConsumptionStep = currentStep === QUESTIONS.length;
+  const q = !isConsumptionStep ? QUESTIONS[currentStep] : null;
+  const isLast = isConsumptionStep;
+  const progress = ((currentStep + 1) / TOTAL_STEPS) * 100;
+
+  const toggleMethod = (id) => {
+    setConsumptionPrefs((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+    );
+  };
 
   const handleNext = async () => {
     if (isLast) {
       setSaving(true);
       try {
-        await saveProfile(user.id, answers);
-        setSavedProfile(answers); // update context so Profile page has it immediately
+        const fullProfile = { ...answers, consumptionPrefs };
+        await saveProfile(user.id, fullProfile);
+        setSavedProfile(fullProfile);
         navigate("/profile");
       } catch (err) {
         console.error("Failed to save profile", err);
@@ -170,7 +192,9 @@ export default function Assessment() {
         </div>
         <div className="assessment__meta">
           <span className="assessment__step-label">
-            Question {currentStep + 1} of {QUESTIONS.length}
+            {isConsumptionStep
+              ? "Final Step — Preferences"
+              : `Question ${currentStep + 1} of ${QUESTIONS.length}`}
           </span>
           <span className="assessment__user">
             {user?.picture && (
@@ -182,24 +206,59 @@ export default function Assessment() {
       </div>
 
       <div className="assessment__body">
-        <div className="assessment__question-card">
-          <div className="assessment__step-badge">Factor {q.step} of 8</div>
-          <h2 className="assessment__question-title">{q.label}</h2>
-          <p className="assessment__question-desc">{q.description}</p>
 
-          <div className="assessment__slider-wrap">
-            <BiSlider
-              {...q}
-              value={answers[q.id]}
-              onChange={(v) => setAnswers((prev) => ({ ...prev, [q.id]: v }))}
-            />
+        {/* ── Slider steps 1–8 ── */}
+        {!isConsumptionStep && (
+          <div className="assessment__question-card">
+            <div className="assessment__step-badge">Factor {q.step} of 8</div>
+            <h2 className="assessment__question-title">{q.label}</h2>
+            <p className="assessment__question-desc">{q.description}</p>
+            <div className="assessment__slider-wrap">
+              <BiSlider
+                {...q}
+                value={answers[q.id]}
+                onChange={(v) => setAnswers((prev) => ({ ...prev, [q.id]: v }))}
+              />
+            </div>
+            <div className="assessment__hints">
+              <span className="assessment__hint assessment__hint--left">💭 {q.leftHint}</span>
+              <span className="assessment__hint assessment__hint--right">💭 {q.rightHint}</span>
+            </div>
           </div>
+        )}
 
-          <div className="assessment__hints">
-            <span className="assessment__hint assessment__hint--left">💭 {q.leftHint}</span>
-            <span className="assessment__hint assessment__hint--right">💭 {q.rightHint}</span>
+        {/* ── Consumption preference step ── */}
+        {isConsumptionStep && (
+          <div className="assessment__question-card">
+            <div className="assessment__step-badge assessment__step-badge--pref">Your Preferences</div>
+            <h2 className="assessment__question-title">How Do You Prefer to Consume?</h2>
+            <p className="assessment__question-desc">
+              Select all methods you use or are open to. We&apos;ll tailor product
+              recommendations to your preferred formats.
+            </p>
+            <div className="consumption-grid">
+              {CONSUMPTION_METHODS.map((m) => {
+                const selected = consumptionPrefs.includes(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    className={`consumption-card ${selected ? "consumption-card--selected" : ""}`}
+                    onClick={() => toggleMethod(m.id)}
+                    type="button"
+                  >
+                    <span className="consumption-card__icon">{m.icon}</span>
+                    <span className="consumption-card__label">{m.label}</span>
+                    <span className="consumption-card__desc">{m.desc}</span>
+                    {selected && <span className="consumption-card__check">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+            {consumptionPrefs.length === 0 && (
+              <p className="consumption-note">Select at least one method to personalize your recommendations.</p>
+            )}
           </div>
-        </div>
+        )}
 
         <div className="assessment__nav">
           {currentStep > 0 && (
@@ -210,19 +269,19 @@ export default function Assessment() {
           <button
             className="btn btn--primary assessment__next-btn"
             onClick={handleNext}
-            disabled={saving}
+            disabled={saving || (isConsumptionStep && consumptionPrefs.length === 0)}
           >
             {saving ? "Saving…" : isLast ? "✨ Calculate My Profile" : "Next →"}
           </button>
         </div>
 
         <div className="assessment__dots">
-          {QUESTIONS.map((_, i) => (
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
             <button
               key={i}
-              className={`assessment__dot ${i === currentStep ? "assessment__dot--active" : ""} ${i < currentStep ? "assessment__dot--done" : ""}`}
+              className={`assessment__dot ${i === currentStep ? "assessment__dot--active" : ""} ${i < currentStep ? "assessment__dot--done" : ""} ${i === QUESTIONS.length ? "assessment__dot--pref" : ""}`}
               onClick={() => !saving && setCurrentStep(i)}
-              aria-label={`Go to question ${i + 1}`}
+              aria-label={i === QUESTIONS.length ? "Consumption preferences" : `Go to question ${i + 1}`}
             />
           ))}
         </div>
