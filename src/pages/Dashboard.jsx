@@ -396,6 +396,7 @@ export default function Dashboard() {
               { color: "#34d399", label: "GI System" },
               { color: "#fbbf24", label: "Immune" },
               { color: "#6ee7b7", label: "Muscles / Joints" },
+              { color: "#f97316", label: "Lymph / Inflammation" },
             ].map(d => (
               <span key={d.label} className="dash-legend-pill">
                 <span className="dash-legend-dot" style={{ background: d.color }} />

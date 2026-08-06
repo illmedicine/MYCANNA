@@ -1293,6 +1293,17 @@ input { font-family: inherit; }
   border-radius: 4px;
   padding: 2px 7px;
 }
+.body-viz__panel-badge {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  background: rgba(249,115,22,.15);
+  color: #f97316;
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
 
 .dash-body-legend-hint { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .dash-legend-pill { display: flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--c-text-muted); }
