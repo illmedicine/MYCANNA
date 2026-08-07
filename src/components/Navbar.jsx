@@ -10,7 +10,7 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, signIn, signOut } = useAuth();
   const location = useNavigate();
   const loc = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -49,7 +49,7 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <Link to="/" className="btn btn--sm btn--primary">Sign In</Link>
+            <button className="btn btn--sm btn--primary" onClick={signIn}>Sign In</button>
           )}
 
           {/* Mobile hamburger */}
