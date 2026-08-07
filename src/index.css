@@ -3249,3 +3249,115 @@ input { font-family: inherit; }
   .rec-card { width: 155px; }
   .rec-card__img, .rec-card__icon { height: 90px; }
 }
+
+/* ── Accordions & content inside the dark archetype card ──────────────────── */
+.atype-card__accordions {
+  margin: 1.1rem 0 .6rem;
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+
+.atype-card .dash-accord {
+  border-bottom-color: rgba(255,255,255,.12);
+}
+
+.atype-card .dash-accord__hd:hover {
+  background: rgba(255,255,255,.06);
+}
+
+.atype-card .dash-accord__badge {
+  background: rgba(255,255,255,.15);
+}
+
+/* insight cards in dark panel */
+.atype-card .insight-card {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.1);
+}
+
+.atype-card .insight-card__text {
+  color: rgba(255,255,255,.82);
+}
+
+/* experience cards in dark panel */
+.atype-card .exp-card {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.12);
+}
+
+.atype-card .exp-card__name { color: #fff; }
+.atype-card .exp-card__rating { color: #fbbf24; }
+.atype-card .exp-card__strain,
+.atype-card .exp-card__date,
+.atype-card .exp-card__note,
+.atype-card .exp-card__vendor,
+.atype-card .exp-card__pct { color: rgba(255,255,255,.62); }
+
+/* health vitals in dark panel */
+.atype-card .dash-health__vital-label { color: rgba(255,255,255,.52); }
+.atype-card .dash-health__vital-value { color: #fff; }
+.atype-card .dash-health__conditions-label { color: rgba(255,255,255,.52); font-size: .75rem; }
+.atype-card .dash-health__condition-tag { background: rgba(255,255,255,.12); color: #fff; }
+.atype-card .dash-health__hint { color: rgba(255,255,255,.5); }
+.atype-card .dash-health__error { color: #fca5a5; background: rgba(239,68,68,.15); }
+
+/* health form in dark panel */
+.atype-card .health-form label span { color: rgba(255,255,255,.7); }
+.atype-card .health-form input,
+.atype-card .health-form__search {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.2);
+  color: #fff;
+}
+.atype-card .health-form input::placeholder,
+.atype-card .health-form__search::placeholder { color: rgba(255,255,255,.35); }
+.atype-card .health-form__label { color: rgba(255,255,255,.7); }
+.atype-card .health-form__optional { color: rgba(255,255,255,.42); }
+.atype-card .health-form__gender-btn {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.2);
+  color: rgba(255,255,255,.8);
+}
+.atype-card .health-form__gender-btn.active {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+}
+.atype-card .health-form__tag {
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  border-color: rgba(255,255,255,.2);
+}
+.atype-card .health-form__suggestions {
+  background: #1a2535;
+  border-color: rgba(255,255,255,.18);
+}
+.atype-card .health-form__suggestion { color: rgba(255,255,255,.82); }
+.atype-card .health-form__suggestion:hover,
+.atype-card .health-form__suggestion.selected {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+/* empty states in dark panel */
+.atype-card .dash-empty h3 { color: #fff; }
+.atype-card .dash-empty p { color: rgba(255,255,255,.6); }
+
+/* profile / cannabis profile in dark panel */
+.atype-card .profile-section__title { color: rgba(255,255,255,.9); }
+.atype-card .prof-archetype-card { background: rgba(255,255,255,.07); }
+.atype-card .prof-archetype-card__name { color: #fff; }
+.atype-card .prof-archetype-card__sub { color: rgba(255,255,255,.68); }
+.atype-card .terpene-card { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.1); }
+.atype-card .terpene-card__name { color: #fff; }
+.atype-card .terpene-card__desc { color: rgba(255,255,255,.68); }
+.atype-card .guide-card { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.1); }
+.atype-card .guide-card strong { color: #fff; }
+.atype-card .guide-card p { color: rgba(255,255,255,.72); }
+.atype-card .format-card { background: rgba(255,255,255,.06); }
+.atype-card .format-card__label { color: #fff; }
+.atype-card .format-tip { color: rgba(255,255,255,.72); }
+.atype-card .avoid-item { color: rgba(255,255,255,.8); }
+.atype-card .profile-disclaimer { color: rgba(255,255,255,.38); }
+
+/* bi-slider labels in dark panel */
+.atype-card .bislider__label,
+.atype-card .bislider__side { color: rgba(255,255,255,.6); }

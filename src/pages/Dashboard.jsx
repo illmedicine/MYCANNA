@@ -206,50 +206,81 @@ const ARCHETYPE_THEMES = {
   },
 };
 
-// ── Archetype card — dual avatar hero (character + interactive body map) ─────────
-function ArchetypeCard({ archetype, archetypeSub }) {
-  const [bodyRegion, setBodyRegion] = useState(null);
-  const theme = ARCHETYPE_THEMES[archetype];
+// ── Archetype card — full dashboard view with accordions inside ────────────────
+function ArchetypeCard({
+  archetype, archetypeSub,
+  insights = [], insightTypeList = [], INSIGHT_EMOJI = {},
+  experiences = [],
+  healthData, activeConditions = [],
+  savedProfile, profile,
+  navigate,
+  onSaveHealth,
+}) {
+  const [bodyRegion,    setBodyRegion]    = useState(null);
+  const [editingHealth, setEditingHealth] = useState(false);
+  const [saveError,     setSaveError]     = useState("");
+
+  const theme      = ARCHETYPE_THEMES[archetype];
   const avatarInfo = ARCHETYPE_AVATARS[archetype];
   if (!theme || !avatarInfo) return null;
   const { Avatar, character } = avatarInfo;
-
   const region = ENDO_REGIONS.find(r => r.id === bodyRegion);
+
+  const healthSummary = healthData
+    ? [
+        healthData.age    ? `${healthData.age} yrs`   : null,
+        healthData.weight ? `${healthData.weight} lbs`  : null,
+        healthData.height ? healthData.height           : null,
+        activeConditions.length
+          ? `${activeConditions.length} condition${activeConditions.length !== 1 ? "s" : ""}`
+          : null,
+      ].filter(Boolean).join(" · ")
+    : "No data yet";
+
+  const handleCardSaveHealth = async (data) => {
+    setSaveError("");
+    try {
+      await onSaveHealth(data);
+      setEditingHealth(false);
+    } catch {
+      setSaveError("Save failed — please check your connection and try again.");
+    }
+  };
+
+  const darkVars = {
+    "--c-text":       "#ffffff",
+    "--c-text-muted": "rgba(255,255,255,0.58)",
+    "--c-border":     "rgba(255,255,255,0.13)",
+    "--c-surface":    "rgba(255,255,255,0.08)",
+    "--c-bg":         "rgba(0,0,0,0)",
+  };
 
   return (
     <div className="atype-card" style={{ background: theme.gradient }}>
       {/* ── Dual avatar hero ── */}
       <div className="atype-card__hero atype-card__hero--dual">
-        {/* Left: medieval character avatar */}
         <div className="atype-card__avatar-item">
-          <div className="atype-card__avatar-wrap">
-            <Avatar />
-          </div>
+          <div className="atype-card__avatar-wrap"><Avatar /></div>
           <div className="atype-card__avatar-label">{character}</div>
         </div>
-
-        {/* Divider */}
         <div className="atype-card__avatar-divider" />
-
-        {/* Right: interactive body map */}
         <div className="atype-card__avatar-item">
           <div className="atype-card__avatar-wrap atype-card__avatar-wrap--body">
             <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} />
           </div>
           <div className="atype-card__avatar-label">
-            {bodyRegion ? <span style={{ color: ENDO_REGIONS.find(r => r.id === bodyRegion)?.color }}>● Tap a system</span> : "Tap a system"}
+            {bodyRegion
+              ? <span style={{ color: ENDO_REGIONS.find(r => r.id === bodyRegion)?.color }}>● Tap a system</span>
+              : "Tap a system"}
           </div>
         </div>
       </div>
 
-      {/* ── Info panel — switches between archetype info and body region detail ── */}
-      <div className="atype-card__info" style={{ position: "relative" }}>
+      {/* ── Info panel ── */}
+      <div className="atype-card__info" style={{ position: "relative", ...darkVars }}>
         {region ? (
-          /* Body region detail view */
           <div className="atype-body-panel">
-            <button className="atype-body-panel__back" onClick={() => setBodyRegion(null)}>
-              ← {character}
-            </button>
+            <button className="atype-body-panel__back" onClick={() => setBodyRegion(null)}>← {character}</button>
             <div className="atype-body-panel__header">
               <span className="atype-body-panel__emoji">{region.emoji}</span>
               <div>
@@ -263,16 +294,210 @@ function ArchetypeCard({ archetype, archetypeSub }) {
             <p className="atype-body-panel__insight">{region.insight}</p>
           </div>
         ) : (
-          /* Normal archetype info */
           <>
+            {/* ── Archetype identity ── */}
             <div className="atype-card__class-badge"><span>{character}</span></div>
             <h2 className="atype-card__name">{archetype}</h2>
-            <p className="atype-card__tagline">"{theme.tagline}"</p>
+            <p className="atype-card__tagline">&ldquo;{theme.tagline}&rdquo;</p>
             <p className="atype-card__sub">{archetypeSub}</p>
             <div className="atype-card__strengths">
               {theme.strengths.map(s => <span key={s} className="atype-strength">{s}</span>)}
             </div>
             <div className="atype-card__ideal"><span>✨</span>{theme.idealSetting}</div>
+
+            {/* ── Accordion sections ── */}
+            <div className="atype-card__accordions">
+
+              {/* AI Insights */}
+              <Collapsible
+                icon="🔬" title="AI Insights" badge={insights.length} defaultOpen={false}
+                headerPreview={
+                  <div className="insight-preview-row">
+                    {insightTypeList.map(type => (
+                      <span key={type} className="insight-preview-emoji" title={type}>{INSIGHT_EMOJI[type]}</span>
+                    ))}
+                  </div>
+                }
+              >
+                <div className="dash-insights__list">
+                  {insights.map((ins, i) => (
+                    <div key={i} className={`insight-card insight-card--${ins.type}`}>
+                      <div className="insight-card__head">
+                        <span className="insight-card__icon">{ins.icon}</span>
+                        <span className="insight-card__title">{ins.title}</span>
+                        {ins.type === "health"      && <span className="insight-card__badge">Health</span>}
+                        {ins.type === "safety"      && <span className="insight-card__badge insight-card__badge--warn">Safety</span>}
+                        {ins.type === "lifestyle"   && <span className="insight-card__badge insight-card__badge--lifestyle">Lifestyle</span>}
+                        {ins.type === "career"      && <span className="insight-card__badge insight-card__badge--career">Career</span>}
+                        {ins.type === "love"        && <span className="insight-card__badge insight-card__badge--love">Love</span>}
+                        {ins.type === "personality" && <span className="insight-card__badge insight-card__badge--personality">Personality</span>}
+                      </div>
+                      <p className="insight-card__text">{ins.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </Collapsible>
+
+              {/* Experience Journal */}
+              <Collapsible icon="📋" title="Experience Journal" badge={experiences.length || null} defaultOpen={false}
+                headerExtra={
+                  <Link to="/log" className="dash-accord__inline-cta" onClick={e => e.stopPropagation()}>+ New</Link>
+                }
+              >
+                {experiences.length === 0 ? (
+                  <div className="dash-empty">
+                    <div className="dash-empty__icon">📋</div>
+                    <h3>No experiences logged yet</h3>
+                    <p>Log your first product experience to start building your personalized cannabis profile.</p>
+                    <Link to="/log" className="btn btn--primary">Log Your First Experience</Link>
+                  </div>
+                ) : (
+                  <div className="dash-journal__grid">
+                    {experiences.slice(0, 12).map(exp => <ExperienceCard key={exp.id} exp={exp} />)}
+                  </div>
+                )}
+              </Collapsible>
+
+              {/* Health Data */}
+              <Collapsible icon="❤️" title="Health Data" summary={healthSummary}
+                headerExtra={
+                  !editingHealth && (
+                    <button className="dash-accord__inline-cta"
+                      onClick={e => { e.stopPropagation(); setEditingHealth(true); }}>
+                      {healthData ? "Edit" : "Add"}
+                    </button>
+                  )
+                }
+              >
+                {saveError && <div className="dash-health__error">{saveError}</div>}
+                {editingHealth ? (
+                  <HealthForm initial={healthData} onSave={handleCardSaveHealth}
+                    onCancel={() => { setEditingHealth(false); setSaveError(""); }} />
+                ) : (
+                  <div className="dash-health__view">
+                    <div className="dash-health__vitals">
+                      {[
+                        { label: "Age",    value: healthData?.age    ? `${healthData.age} yrs`   : "—" },
+                        { label: "Weight", value: healthData?.weight ? `${healthData.weight} lbs` : "—" },
+                        { label: "Height", value: healthData?.height || "—" },
+                        { label: "Body",   value: healthData?.gender ? healthData.gender.charAt(0).toUpperCase() + healthData.gender.slice(1) : "Neutral" },
+                      ].map(v => (
+                        <div key={v.label} className="dash-health__vital">
+                          <span className="dash-health__vital-label">{v.label}</span>
+                          <span className="dash-health__vital-value">{v.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {activeConditions.length > 0 && (
+                      <div className="dash-health__conditions">
+                        <span className="dash-health__conditions-label">Conditions</span>
+                        <div className="dash-health__condition-tags">
+                          {activeConditions.map(c => <span key={c} className="dash-health__condition-tag">{c}</span>)}
+                        </div>
+                      </div>
+                    )}
+                    {!healthData && (
+                      <p className="dash-health__hint">Health data is optional and only used to personalize your cannabis insights. It&apos;s never shared.</p>
+                    )}
+                    <button className="btn btn--outline btn--sm dash-health__edit-btn" onClick={() => setEditingHealth(true)}>
+                      {healthData ? "Edit Health Data" : "Add Health Data"}
+                    </button>
+                  </div>
+                )}
+              </Collapsible>
+
+              {/* Cannabis Profile */}
+              <Collapsible icon="🧬" title="Cannabis Profile"
+                summary={profile ? `${profile.archetypeEmoji} ${profile.archetype}` : "No assessment yet"}
+              >
+                {!profile ? (
+                  <div className="dash-empty">
+                    <div className="dash-empty__icon">🧬</div>
+                    <h3>No assessment yet</h3>
+                    <p>Complete your assessment to unlock your personal cannabis archetype, terpene matches, and consumption guidance.</p>
+                    <Link to="/assessment" className="btn btn--primary">Take Assessment</Link>
+                  </div>
+                ) : (
+                  <div className="profile-body">
+                    <div className="prof-archetype-card">
+                      <div className="prof-archetype-card__emoji">{profile.archetypeEmoji}</div>
+                      <div>
+                        <div className="prof-archetype-card__name">{profile.archetype}</div>
+                        <div className="prof-archetype-card__sub">{profile.archetypeSub}</div>
+                      </div>
+                    </div>
+                    <div className="profile-section">
+                      <h3 className="profile-section__title">🌿 Terpene Matches</h3>
+                      <div className="terpene-grid">
+                        {profile.terpenes.map(t => (
+                          <div key={t.name} className="terpene-card">
+                            <span className="terpene-card__emoji">{t.emoji}</span>
+                            <strong className="terpene-card__name">{t.name}</strong>
+                            <p className="terpene-card__desc">{t.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="profile-section">
+                      <h3 className="profile-section__title">⚗️ Potency Guidance</h3>
+                      <div className="guide-card guide-card--thc">
+                        <span className="guide-card__icon">🔬</span>
+                        <div><strong>THC Level</strong><p>{profile.potencyGuide}</p></div>
+                      </div>
+                      <div className="guide-card guide-card--cbd">
+                        <span className="guide-card__icon">🌿</span>
+                        <div><strong>CBD Approach</strong><p>{profile.cbdGuide}</p></div>
+                      </div>
+                    </div>
+                    {profile.formatGuidance.length > 0 && (
+                      <div className="profile-section">
+                        <h3 className="profile-section__title">🎯 Recommended Formats</h3>
+                        <div className="format-guidance">
+                          {profile.formatGuidance.map(f => (
+                            <div key={f.id} className="format-card">
+                              <div className="format-card__header">
+                                <span className="format-card__icon">{f.icon}</span>
+                                <strong className="format-card__label">{f.label}</strong>
+                              </div>
+                              <ul className="format-card__tips">
+                                {f.tips.map((tip, i) => (
+                                  <li key={i} className={tip.startsWith("⚠️") ? "format-tip format-tip--warn" : "format-tip"}>{tip}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {profile.avoid.length > 0 && (
+                      <div className="profile-section">
+                        <h3 className="profile-section__title">⚠️ What to Avoid</h3>
+                        <ul className="avoid-list">
+                          {profile.avoid.map(a => (
+                            <li key={a} className="avoid-item"><span className="avoid-item__icon">✕</span>{a}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="profile-section">
+                      <h3 className="profile-section__title">🎛️ Profile Snapshot</h3>
+                      <div className="snapshot-sliders">
+                        {SLIDER_META.map(q => <BiSlider key={q.id} {...q} value={savedProfile[q.id]} readonly />)}
+                      </div>
+                    </div>
+                    <div className="profile-actions">
+                      <button className="btn btn--outline btn--sm" onClick={() => navigate("/assessment")}>Retake Assessment</button>
+                    </div>
+                    <p className="profile-disclaimer">
+                      Mycana profiles are educational tools only and do not constitute medical advice. Consult a healthcare professional regarding any medical conditions.
+                    </p>
+                  </div>
+                )}
+              </Collapsible>
+
+            </div>
+
+            {/* ── Famous people ── */}
             <div className="atype-card__famous">
               <div className="atype-card__famous-label">Famous {character}s</div>
               <div className="atype-card__famous-grid">
@@ -611,6 +836,11 @@ export default function Dashboard() {
     }
   }, [user, updateHealthData]);
 
+  // Simpler save for ArchetypeCard (manages its own editing/error state)
+  const saveHealthData = useCallback(async (data) => {
+    await updateHealthData(user.id, data);
+  }, [user, updateHealthData]);
+
   const gender          = healthData?.gender ?? "neutral";
   const level           = getLevel(prestige.points ?? 0);
   const activeConditions = healthData?.conditions ?? [];
@@ -670,26 +900,34 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* ── Archetype theme card ── */}
+      {/* ── Archetype card (all sections live inside when profile exists) ── */}
       {profile && (
-        <ArchetypeCard archetype={profile.archetype} archetypeSub={profile.archetypeSub} />
+        <ArchetypeCard
+          archetype={profile.archetype}
+          archetypeSub={profile.archetypeSub}
+          insights={insights}
+          insightTypeList={insightTypeList}
+          INSIGHT_EMOJI={INSIGHT_EMOJI}
+          experiences={experiences}
+          healthData={healthData}
+          activeConditions={activeConditions}
+          savedProfile={savedProfile}
+          profile={profile}
+          navigate={navigate}
+          onSaveHealth={saveHealthData}
+        />
       )}
 
-      {/* ── Accordion sections ── */}
+      {/* ── Fallback accordions (only shown when no profile yet) ── */}
+      {!profile && (
       <div className="dash-accordions">
 
-        {/* ─ AI Insights ─ collapsed by default, emoji preview row always visible */}
         <Collapsible
-          icon="🔬"
-          title="AI Insights"
-          badge={insights.length}
-          defaultOpen={false}
+          icon="🔬" title="AI Insights" badge={insights.length} defaultOpen={false}
           headerPreview={
             <div className="insight-preview-row">
               {insightTypeList.map(type => (
-                <span key={type} className="insight-preview-emoji" title={type}>
-                  {INSIGHT_EMOJI[type]}
-                </span>
+                <span key={type} className="insight-preview-emoji" title={type}>{INSIGHT_EMOJI[type]}</span>
               ))}
             </div>
           }
@@ -700,12 +938,12 @@ export default function Dashboard() {
                 <div className="insight-card__head">
                   <span className="insight-card__icon">{ins.icon}</span>
                   <span className="insight-card__title">{ins.title}</span>
-                  {ins.type === "health"       && <span className="insight-card__badge">Health</span>}
-                  {ins.type === "safety"       && <span className="insight-card__badge insight-card__badge--warn">Safety</span>}
-                  {ins.type === "lifestyle"    && <span className="insight-card__badge insight-card__badge--lifestyle">Lifestyle</span>}
-                  {ins.type === "career"       && <span className="insight-card__badge insight-card__badge--career">Career</span>}
-                  {ins.type === "love"         && <span className="insight-card__badge insight-card__badge--love">Love</span>}
-                  {ins.type === "personality"  && <span className="insight-card__badge insight-card__badge--personality">Personality</span>}
+                  {ins.type === "health"      && <span className="insight-card__badge">Health</span>}
+                  {ins.type === "safety"      && <span className="insight-card__badge insight-card__badge--warn">Safety</span>}
+                  {ins.type === "lifestyle"   && <span className="insight-card__badge insight-card__badge--lifestyle">Lifestyle</span>}
+                  {ins.type === "career"      && <span className="insight-card__badge insight-card__badge--career">Career</span>}
+                  {ins.type === "love"        && <span className="insight-card__badge insight-card__badge--love">Love</span>}
+                  {ins.type === "personality" && <span className="insight-card__badge insight-card__badge--personality">Personality</span>}
                 </div>
                 <p className="insight-card__text">{ins.text}</p>
               </div>
@@ -713,12 +951,9 @@ export default function Dashboard() {
           </div>
         </Collapsible>
 
-        {/* ─ Experience Journal ─ (open by default) */}
         <Collapsible icon="📋" title="Experience Journal" badge={experiences.length || null} defaultOpen={true}
           headerExtra={
-            <Link to="/log" className="dash-accord__inline-cta" onClick={e => e.stopPropagation()}>
-              + New
-            </Link>
+            <Link to="/log" className="dash-accord__inline-cta" onClick={e => e.stopPropagation()}>+ New</Link>
           }>
           {experiences.length === 0 ? (
             <div className="dash-empty">
@@ -734,7 +969,6 @@ export default function Dashboard() {
           )}
         </Collapsible>
 
-        {/* ─ Health Data ─ */}
         <Collapsible icon="❤️" title="Health Data" summary={healthSummary}
           headerExtra={
             !editingHealth && (
@@ -771,7 +1005,7 @@ export default function Dashboard() {
                 </div>
               )}
               {!healthData && (
-                <p className="dash-health__hint">Health data is optional and only used to personalize your cannabis insights. It's never shared.</p>
+                <p className="dash-health__hint">Health data is optional and only used to personalize your cannabis insights. It&apos;s never shared.</p>
               )}
               <button className="btn btn--outline btn--sm dash-health__edit-btn" onClick={() => setEditingHealth(true)}>
                 {healthData ? "Edit Health Data" : "Add Health Data"}
@@ -780,109 +1014,18 @@ export default function Dashboard() {
           )}
         </Collapsible>
 
-        {/* ─ Cannabis Profile ─ (collapsed by default) */}
-        <Collapsible icon="🧬" title="Cannabis Profile"
-          summary={profile ? `${profile.archetypeEmoji} ${profile.archetype}` : "No assessment yet"}>
-          {!profile ? (
-            <div className="dash-empty">
-              <div className="dash-empty__icon">🧬</div>
-              <h3>No assessment yet</h3>
-              <p>Complete your assessment to unlock your personal cannabis archetype, terpene matches, and consumption guidance.</p>
-              <Link to="/assessment" className="btn btn--primary">Take Assessment</Link>
-            </div>
-          ) : (
-            <div className="profile-body">
-              {/* Archetype card */}
-              <div className="prof-archetype-card">
-                <div className="prof-archetype-card__emoji">{profile.archetypeEmoji}</div>
-                <div>
-                  <div className="prof-archetype-card__name">{profile.archetype}</div>
-                  <div className="prof-archetype-card__sub">{profile.archetypeSub}</div>
-                </div>
-              </div>
-
-              {/* Terpene matches */}
-              <div className="profile-section">
-                <h3 className="profile-section__title">🌿 Terpene Matches</h3>
-                <div className="terpene-grid">
-                  {profile.terpenes.map(t => (
-                    <div key={t.name} className="terpene-card">
-                      <span className="terpene-card__emoji">{t.emoji}</span>
-                      <strong className="terpene-card__name">{t.name}</strong>
-                      <p className="terpene-card__desc">{t.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Potency guidance */}
-              <div className="profile-section">
-                <h3 className="profile-section__title">⚗️ Potency Guidance</h3>
-                <div className="guide-card guide-card--thc">
-                  <span className="guide-card__icon">🔬</span>
-                  <div><strong>THC Level</strong><p>{profile.potencyGuide}</p></div>
-                </div>
-                <div className="guide-card guide-card--cbd">
-                  <span className="guide-card__icon">🌿</span>
-                  <div><strong>CBD Approach</strong><p>{profile.cbdGuide}</p></div>
-                </div>
-              </div>
-
-              {/* Format recommendations */}
-              {profile.formatGuidance.length > 0 && (
-                <div className="profile-section">
-                  <h3 className="profile-section__title">🎯 Recommended Formats</h3>
-                  <div className="format-guidance">
-                    {profile.formatGuidance.map(f => (
-                      <div key={f.id} className="format-card">
-                        <div className="format-card__header">
-                          <span className="format-card__icon">{f.icon}</span>
-                          <strong className="format-card__label">{f.label}</strong>
-                        </div>
-                        <ul className="format-card__tips">
-                          {f.tips.map((tip, i) => (
-                            <li key={i} className={tip.startsWith("⚠️") ? "format-tip format-tip--warn" : "format-tip"}>{tip}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* What to avoid */}
-              {profile.avoid.length > 0 && (
-                <div className="profile-section">
-                  <h3 className="profile-section__title">⚠️ What to Avoid</h3>
-                  <ul className="avoid-list">
-                    {profile.avoid.map(a => (
-                      <li key={a} className="avoid-item"><span className="avoid-item__icon">✕</span>{a}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Profile snapshot */}
-              <div className="profile-section">
-                <h3 className="profile-section__title">🎛️ Profile Snapshot</h3>
-                <div className="snapshot-sliders">
-                  {SLIDER_META.map(q => <BiSlider key={q.id} {...q} value={savedProfile[q.id]} readonly />)}
-                </div>
-              </div>
-
-              <div className="profile-actions">
-                <button className="btn btn--outline btn--sm" onClick={() => navigate("/assessment")}>Retake Assessment</button>
-              </div>
-
-              <p className="profile-disclaimer">
-                Mycana profiles are educational tools only and do not constitute medical advice. Consult a healthcare professional regarding any medical conditions.
-              </p>
-            </div>
-          )}
+        <Collapsible icon="🧬" title="Cannabis Profile" summary="No assessment yet">
+          <div className="dash-empty">
+            <div className="dash-empty__icon">🧬</div>
+            <h3>No assessment yet</h3>
+            <p>Complete your assessment to unlock your personal cannabis archetype, terpene matches, and consumption guidance.</p>
+            <Link to="/assessment" className="btn btn--primary">Take Assessment</Link>
+          </div>
         </Collapsible>
 
-
       </div>
+      )}
+
     </div>
   );
 }
