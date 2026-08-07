@@ -22,7 +22,7 @@ function setCORS(req, res) {
 }
 
 // ── 1: Server-side 1A4 product lookup proxy ──────────────────────────────────
-exports.lookup1A4Product = onRequest({ region: "us-east1" }, async (req, res) => {
+exports.lookup1A4Product = onRequest({ region: "us-east1", invoker: "public" }, async (req, res) => {
   setCORS(req, res);
   if (req.method === "OPTIONS") return res.status(204).send("");
 
@@ -89,7 +89,7 @@ exports.lookup1A4Product = onRequest({ region: "us-east1" }, async (req, res) =>
 // ── 2: AI label/screenshot parsing via Gemini Vision ─────────────────────────
 // POST { images: [{ base64, mimeType }], prompt: "label" | "screenshot" }
 exports.parseProductScreenshot = onRequest(
-  { region: "us-east1", secrets: [GEMINI_KEY] },
+  { region: "us-east1", secrets: [GEMINI_KEY], invoker: "public" },
   async (req, res) => {
     setCORS(req, res);
     if (req.method === "OPTIONS") return res.status(204).send("");
