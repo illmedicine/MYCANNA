@@ -2631,7 +2631,7 @@ input { font-family: inherit; }
 .star {
   background: none; border: none;
   font-size: 2rem;
-  color: rgba(0,0,0,.18);
+  color: #c4c9d4;
   cursor: pointer;
   line-height: 1;
   padding: 0;
@@ -2641,7 +2641,7 @@ input { font-family: inherit; }
 .star:hover { color: #fde68a; transform: scale(1.15); }
 .star--on:hover { color: #f59e0b; }
 @media (prefers-color-scheme: dark) {
-  .star { color: rgba(255,255,255,.2); }
+  .star { color: #6b7280; }
 }
 
 .would-buy { margin-top: 16px; }
@@ -3358,6 +3358,9 @@ input { font-family: inherit; }
 .atype-card .avoid-item { color: rgba(255,255,255,.8); }
 .atype-card .profile-disclaimer { color: rgba(255,255,255,.38); }
 
-/* bi-slider labels in dark panel */
-.atype-card .bislider__label,
-.atype-card .bislider__side { color: rgba(255,255,255,.6); }
+/* Reset CSS vars inside the white slider snapshot box so BiSlider labels stay dark */
+.atype-card .snapshot-sliders {
+  --c-text:       #1a2b1e;
+  --c-text-muted: #6b8c74;
+  --c-border:     #d8ead0;
+}
