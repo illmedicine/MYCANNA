@@ -1753,6 +1753,114 @@ input { font-family: inherit; }
   color: white;
   line-height: 1.42;
 }
+/* ── Dual-avatar hero layout ─────────────────────────────────────────────────── */
+.atype-card__hero--dual {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  padding: 24px 16px 0;
+  min-height: 240px;
+}
+.atype-card__avatar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.atype-card__avatar-divider {
+  width: 1px;
+  height: 180px;
+  background: rgba(255,255,255,.2);
+  margin: 0 8px;
+  align-self: center;
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+.atype-card__avatar-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-top: 6px;
+  padding-bottom: 10px;
+}
+/* Narrower avatar-wrap for dual layout */
+.atype-card__hero--dual .atype-card__avatar-wrap {
+  width: 100%;
+  max-width: 148px;
+  height: 192px;
+}
+.atype-card__avatar-wrap--body {
+  position: relative;
+}
+
+/* ── Body region detail panel (replaces archetype info on hover) ──────────────── */
+.atype-body-panel {
+  animation: atype-body-in 0.22s ease;
+}
+@keyframes atype-body-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.atype-body-panel__back {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  color: white;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  cursor: pointer;
+  margin-bottom: 14px;
+  letter-spacing: .04em;
+}
+.atype-body-panel__back:hover { background: rgba(255,255,255,.25); }
+.atype-body-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.atype-body-panel__emoji { font-size: 2rem; line-height: 1; }
+.atype-body-panel__name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+}
+.atype-body-panel__receptor {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.6);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.atype-body-panel__effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.atype-body-effect {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: .68rem;
+  font-weight: 600;
+  color: white;
+}
+.atype-body-panel__insight {
+  font-size: .8rem;
+  color: rgba(255,255,255,.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
 /* AI Insights preview emoji row (visible in collapsed header) */
 .dash-accord__preview {
   display: flex;
@@ -1771,8 +1879,9 @@ input { font-family: inherit; }
   opacity: .62;
 }
 @media (max-width: 640px) {
-  .atype-card__hero { min-height: 190px; }
-  .atype-card__avatar-wrap { width: 140px; height: 182px; }
+  .atype-card__hero--dual { min-height: 200px; padding: 16px 8px 0; gap: 0; }
+  .atype-card__hero--dual .atype-card__avatar-wrap { max-width: 118px; height: 154px; }
+  .atype-card__avatar-divider { height: 140px; }
   .atype-card__name { font-size: 1.45rem; }
   .atype-card__famous-grid { grid-template-columns: 1fr; }
   .atype-card__info { padding: 14px 16px 20px; }

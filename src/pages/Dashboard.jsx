@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import BodyViz from "../components/BodyViz.jsx";
 import BiSlider from "../components/BiSlider.jsx";
 import { ARCHETYPE_AVATARS } from "../components/ArchetypeAvatars.jsx";
+import MedievalBodyMap, { ENDO_REGIONS } from "../components/MedievalBodyMap.jsx";
 import { getUserExperiences } from "../services/experienceService.js";
 import { getUserPrestige } from "../services/prestigeService.js";
 
@@ -206,52 +206,86 @@ const ARCHETYPE_THEMES = {
   },
 };
 
-// ── Archetype card — 16-personalities style with medieval avatar ───────────────
+// ── Archetype card — dual avatar hero (character + interactive body map) ─────────
 function ArchetypeCard({ archetype, archetypeSub }) {
+  const [bodyRegion, setBodyRegion] = useState(null);
   const theme = ARCHETYPE_THEMES[archetype];
   const avatarInfo = ARCHETYPE_AVATARS[archetype];
   if (!theme || !avatarInfo) return null;
   const { Avatar, character } = avatarInfo;
+
+  const region = ENDO_REGIONS.find(r => r.id === bodyRegion);
+
   return (
     <div className="atype-card" style={{ background: theme.gradient }}>
-      {/* ── Avatar hero ── */}
-      <div className="atype-card__hero">
-        <div className="atype-card__avatar-wrap">
-          <Avatar />
-        </div>
-        <div className="atype-card__avatar-glow" />
-      </div>
-
-      {/* ── Info panel ── */}
-      <div className="atype-card__info">
-        <div className="atype-card__class-badge">
-          <span>{character}</span>
-        </div>
-        <h2 className="atype-card__name">{archetype}</h2>
-        <p className="atype-card__tagline">"{theme.tagline}"</p>
-        <p className="atype-card__sub">{archetypeSub}</p>
-        <div className="atype-card__strengths">
-          {theme.strengths.map(s => (
-            <span key={s} className="atype-strength">{s}</span>
-          ))}
-        </div>
-        <div className="atype-card__ideal">
-          <span>✨</span>
-          {theme.idealSetting}
+      {/* ── Dual avatar hero ── */}
+      <div className="atype-card__hero atype-card__hero--dual">
+        {/* Left: medieval character avatar */}
+        <div className="atype-card__avatar-item">
+          <div className="atype-card__avatar-wrap">
+            <Avatar />
+          </div>
+          <div className="atype-card__avatar-label">{character}</div>
         </div>
 
-        {/* Famous people */}
-        <div className="atype-card__famous">
-          <div className="atype-card__famous-label">Famous {character}s</div>
-          <div className="atype-card__famous-grid">
-            {theme.famousPeople.map(p => (
-              <div key={p.name} className="atype-famous">
-                <div className="atype-famous__name">{p.name}</div>
-                <div className="atype-famous__note">{p.note}</div>
-              </div>
-            ))}
+        {/* Divider */}
+        <div className="atype-card__avatar-divider" />
+
+        {/* Right: interactive body map */}
+        <div className="atype-card__avatar-item">
+          <div className="atype-card__avatar-wrap atype-card__avatar-wrap--body">
+            <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} />
+          </div>
+          <div className="atype-card__avatar-label">
+            {bodyRegion ? <span style={{ color: ENDO_REGIONS.find(r => r.id === bodyRegion)?.color }}>● Tap a system</span> : "Tap a system"}
           </div>
         </div>
+      </div>
+
+      {/* ── Info panel — switches between archetype info and body region detail ── */}
+      <div className="atype-card__info" style={{ position: "relative" }}>
+        {region ? (
+          /* Body region detail view */
+          <div className="atype-body-panel">
+            <button className="atype-body-panel__back" onClick={() => setBodyRegion(null)}>
+              ← {character}
+            </button>
+            <div className="atype-body-panel__header">
+              <span className="atype-body-panel__emoji">{region.emoji}</span>
+              <div>
+                <div className="atype-body-panel__name">{region.label}</div>
+                <div className="atype-body-panel__receptor">{region.receptor}</div>
+              </div>
+            </div>
+            <div className="atype-body-panel__effects">
+              {region.effects.map(e => <span key={e} className="atype-body-effect">{e}</span>)}
+            </div>
+            <p className="atype-body-panel__insight">{region.insight}</p>
+          </div>
+        ) : (
+          /* Normal archetype info */
+          <>
+            <div className="atype-card__class-badge"><span>{character}</span></div>
+            <h2 className="atype-card__name">{archetype}</h2>
+            <p className="atype-card__tagline">"{theme.tagline}"</p>
+            <p className="atype-card__sub">{archetypeSub}</p>
+            <div className="atype-card__strengths">
+              {theme.strengths.map(s => <span key={s} className="atype-strength">{s}</span>)}
+            </div>
+            <div className="atype-card__ideal"><span>✨</span>{theme.idealSetting}</div>
+            <div className="atype-card__famous">
+              <div className="atype-card__famous-label">Famous {character}s</div>
+              <div className="atype-card__famous-grid">
+                {theme.famousPeople.map(p => (
+                  <div key={p.name} className="atype-famous">
+                    <div className="atype-famous__name">{p.name}</div>
+                    <div className="atype-famous__note">{p.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -643,31 +677,6 @@ export default function Dashboard() {
 
       {/* ── Accordion sections ── */}
       <div className="dash-accordions">
-
-        {/* ─ Endocannabinoid Body Map ─ FIRST, open by default — main focal area */}
-        <Collapsible icon="🧍" title="Endocannabinoid Body Map" defaultOpen={true}>
-          <div className="dash-body-section">
-            <div className="dash-section-hint" style={{ marginBottom: 12, fontSize: ".83rem", color: "var(--c-text-muted)" }}>
-              Tap hotspots to explore your endocannabinoid system
-            </div>
-            <BodyViz gender={gender} activeConditions={activeConditions} />
-            <div className="dash-body-legend-hint">
-              {[
-                { color: "#a78bfa", label: "Brain / CNS" },
-                { color: "#f87171", label: "Cardiovascular" },
-                { color: "#34d399", label: "GI System" },
-                { color: "#fbbf24", label: "Immune" },
-                { color: "#6ee7b7", label: "Muscles / Joints" },
-                { color: "#f97316", label: "Lymph / Inflammation" },
-              ].map(d => (
-                <span key={d.label} className="dash-legend-pill">
-                  <span className="dash-legend-dot" style={{ background: d.color }} />
-                  {d.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </Collapsible>
 
         {/* ─ AI Insights ─ collapsed by default, emoji preview row always visible */}
         <Collapsible
