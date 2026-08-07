@@ -462,6 +462,54 @@
   margin-top: 4px;
 }
 
+/* ── Section Dividers in Forms ── */
+.vd-section-divider {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  border-top: 1px solid var(--c-border);
+  padding-top: 14px;
+  margin-top: 4px;
+}
+
+.vd-section-hint {
+  font-size: .8rem;
+  color: var(--c-text-muted);
+  margin-top: -8px;
+  line-height: 1.5;
+}
+
+/* ── Terpene Chip Selector ── */
+.vd-terpene-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.vd-terpene-check {
+  font-size: .78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-bg);
+  color: var(--c-text-muted);
+  cursor: pointer;
+  transition: all .15s;
+  user-select: none;
+}
+
+.vd-terpene-check:hover { border-color: var(--c-primary-mid); color: var(--c-primary); }
+
+.vd-terpene-check--on {
+  background: var(--c-primary-light);
+  border-color: var(--c-primary-mid);
+  color: var(--c-primary-dark, #166534);
+}
+
 /* ── Analytics ── */
 .vd-analytics-grid {
   display: grid;

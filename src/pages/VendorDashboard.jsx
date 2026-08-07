@@ -14,6 +14,11 @@ const CATEGORIES = [
   "Topical", "Capsule", "Beverage", "Accessory", "Other",
 ];
 
+const TERPENES = [
+  "Myrcene", "Limonene", "Caryophyllene", "Linalool", "Pinene",
+  "Terpinolene", "Ocimene", "Bisabolol", "Humulene", "Valencene",
+];
+
 const TIER_COLORS = { free: "#64748b", standard: "#d4a843", premium: "#6d28d9" };
 const TIER_LABELS = { free: "Free Listing", standard: "Standard", premium: "Premium" };
 
@@ -78,6 +83,13 @@ function ProductModal({ vendorId, product, onSave, onClose }) {
     imageUrl: product?.imageUrl || "",
     imagePath: product?.imagePath || "",
     featured: product?.featured || false,
+    // Recommendation matching fields
+    effectDirection: product?.effectDirection || "",
+    experienceSuitability: product?.experienceSuitability || "",
+    purposeTags: product?.purposeTags || "",
+    socialContext: product?.socialContext || "",
+    anxietySafe: product?.anxietySafe ?? false,
+    primaryTerpenes: product?.primaryTerpenes || [],
   });
   const [saving, setSaving] = useState(false);
 
@@ -200,6 +212,80 @@ function ProductModal({ vendorId, product, onSave, onClose }) {
             />
           </div>
 
+          {/* Recommendation matching */}
+          <div className="vd-section-divider">🎯 Recommendation Matching</div>
+          <p className="vd-section-hint">Help Mycana match this product to the right customers based on their personal cannabis profile.</p>
+
+          <div className="vd-form-3col">
+            <div className="vd-form-group">
+              <label>Effect Direction</label>
+              <select value={form.effectDirection} onChange={(e) => set("effectDirection", e.target.value)}>
+                <option value="">Not specified</option>
+                <option value="Indica">Indica — Relaxing</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Sativa">Sativa — Energizing</option>
+              </select>
+            </div>
+            <div className="vd-form-group">
+              <label>Experience Level</label>
+              <select value={form.experienceSuitability} onChange={(e) => set("experienceSuitability", e.target.value)}>
+                <option value="">Not specified</option>
+                <option value="Beginner">Beginner</option>
+                <option value="All">All Levels</option>
+                <option value="Experienced">Experienced</option>
+              </select>
+            </div>
+            <div className="vd-form-group">
+              <label>Purpose</label>
+              <select value={form.purposeTags} onChange={(e) => set("purposeTags", e.target.value)}>
+                <option value="">Not specified</option>
+                <option value="Recreational">Recreational</option>
+                <option value="Therapeutic">Therapeutic</option>
+                <option value="Both">Both</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="vd-form-2col">
+            <div className="vd-form-group">
+              <label>Social Context</label>
+              <select value={form.socialContext} onChange={(e) => set("socialContext", e.target.value)}>
+                <option value="">Not specified</option>
+                <option value="Solo">Solo / Private</option>
+                <option value="Social">Social / Active</option>
+                <option value="Both">Both</option>
+              </select>
+            </div>
+            <div className="vd-form-group vd-form-group--check" style={{ alignSelf: "flex-end", paddingBottom: 4 }}>
+              <label>
+                <input type="checkbox" checked={form.anxietySafe} onChange={(e) => set("anxietySafe", e.target.checked)} />
+                Anxiety-Safe Profile
+              </label>
+            </div>
+          </div>
+
+          <div className="vd-form-group">
+            <label>Primary Terpenes <span style={{ color: "var(--c-text-muted)", fontWeight: 400 }}>(select all that apply)</span></label>
+            <div className="vd-terpene-grid">
+              {TERPENES.map((t) => (
+                <label key={t} className={`vd-terpene-check ${form.primaryTerpenes.includes(t) ? "vd-terpene-check--on" : ""}`}>
+                  <input
+                    type="checkbox"
+                    checked={form.primaryTerpenes.includes(t)}
+                    onChange={(e) =>
+                      set("primaryTerpenes", e.target.checked
+                        ? [...form.primaryTerpenes, t]
+                        : form.primaryTerpenes.filter((x) => x !== t)
+                      )
+                    }
+                    style={{ display: "none" }}
+                  />
+                  {t}
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="vd-modal__footer">
             <button type="button" className="btn btn--outline" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn--primary" disabled={saving}>
@@ -275,6 +361,10 @@ function StoreProfileTab({ vendor, onSaved }) {
     phone: vendor.phone || "",
     website: vendor.website || "",
     hours: vendor.hours || "",
+    deliveryEnabled: vendor.deliveryEnabled ?? false,
+    deliveryRadius: vendor.deliveryRadius ?? "",
+    deliveryFee: vendor.deliveryFee ?? "",
+    deliveryMinOrder: vendor.deliveryMinOrder ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -336,6 +426,51 @@ function StoreProfileTab({ vendor, onSaved }) {
           placeholder="e.g. Mon–Sat 10am–8pm, Sun 12pm–6pm"
         />
       </div>
+
+      <div className="vd-section-divider">🚚 Delivery Configuration</div>
+      <div className="vd-form-group vd-form-group--check">
+        <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input type="checkbox" checked={form.deliveryEnabled} onChange={(e) => set("deliveryEnabled", e.target.checked)} style={{ width: 18, height: 18 }} />
+          <span>
+            <strong>Offer Delivery</strong>
+            <span style={{ display: "block", fontWeight: 400, fontSize: ".82rem", color: "var(--c-text-muted)" }}>
+              Your store will appear when customers filter by Delivery on the Discover page
+            </span>
+          </span>
+        </label>
+      </div>
+
+      {form.deliveryEnabled && (
+        <div className="vd-form-3col">
+          <div className="vd-form-group">
+            <label>Delivery Radius (miles)</label>
+            <input
+              type="number" min="1" max="100"
+              value={form.deliveryRadius}
+              onChange={(e) => set("deliveryRadius", e.target.value)}
+              placeholder="e.g. 15"
+            />
+          </div>
+          <div className="vd-form-group">
+            <label>Delivery Fee ($)</label>
+            <input
+              type="number" min="0" step="0.01"
+              value={form.deliveryFee}
+              onChange={(e) => set("deliveryFee", e.target.value)}
+              placeholder="e.g. 5.00"
+            />
+          </div>
+          <div className="vd-form-group">
+            <label>Minimum Order ($)</label>
+            <input
+              type="number" min="0" step="0.01"
+              value={form.deliveryMinOrder}
+              onChange={(e) => set("deliveryMinOrder", e.target.value)}
+              placeholder="e.g. 50.00"
+            />
+          </div>
+        </div>
+      )}
 
       <button className="btn btn--primary" onClick={handleSave} disabled={saving} style={{ marginTop: 8 }}>
         {saving ? "Saving…" : saved ? "✓ Saved!" : "Save Profile"}
