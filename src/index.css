@@ -1605,6 +1605,146 @@ input { font-family: inherit; }
 .dash-section-hint { font-size: .75rem; font-weight: 400; color: var(--c-text-muted); text-transform: none; letter-spacing: 0; }
 
 /* ─── Body Viz ─── */
+/* ── Archetype Theme Card ────────────────────────────────────────────────── */
+.atype-card {
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 0 0 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.28);
+}
+.atype-card__header {
+  display: flex;
+  gap: 28px;
+  padding: 30px 28px 20px;
+  align-items: flex-start;
+}
+.atype-card__char-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 110px;
+}
+.atype-card__emoji {
+  font-size: 78px;
+  line-height: 1;
+  filter: drop-shadow(0 0 18px rgba(255,255,255,.35));
+  animation: atype-float 5s ease-in-out infinite;
+}
+@keyframes atype-float {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-9px); }
+}
+.atype-card__color-name {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  padding: 3px 12px;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+}
+.atype-card__identity { flex: 1; }
+.atype-card__type-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .6;
+  margin-bottom: 4px;
+}
+.atype-card__name {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 6px;
+}
+.atype-card__tagline {
+  font-size: .92rem;
+  font-style: italic;
+  opacity: .8;
+  margin: 0 0 8px;
+}
+.atype-card__sub {
+  font-size: .8rem;
+  opacity: .7;
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+.atype-card__strengths {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.atype-strength {
+  font-size: .7rem;
+  font-weight: 600;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 20px;
+  padding: 3px 11px;
+}
+.atype-card__ideal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  opacity: .75;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+.atype-ideal-icon { font-size: 1rem; }
+/* Famous people */
+.atype-card__famous {
+  padding: 16px 28px 24px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+}
+.atype-card__famous-label {
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .55;
+  margin-bottom: 12px;
+}
+.atype-card__famous-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+}
+.atype-famous {
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  backdrop-filter: blur(8px);
+}
+.atype-famous__name {
+  font-size: .82rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.atype-famous__note {
+  font-size: .72rem;
+  opacity: .7;
+  line-height: 1.45;
+}
+@media (max-width: 640px) {
+  .atype-card__header   { flex-direction: column; align-items: center; padding: 22px 18px 16px; }
+  .atype-card__name     { font-size: 1.6rem; text-align: center; }
+  .atype-card__tagline,
+  .atype-card__sub      { text-align: center; }
+  .atype-card__strengths { justify-content: center; }
+  .atype-card__ideal     { justify-content: center; }
+  .atype-card__famous    { padding: 14px 16px 20px; }
+  .atype-card__famous-grid { grid-template-columns: 1fr; }
+}
+
 .dash-body-section {
   display: flex;
   flex-direction: column;

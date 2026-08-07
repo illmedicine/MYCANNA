@@ -123,6 +123,132 @@ const SLIDER_META = [
   { id: "purpose",         label: "Primary Purpose",   leftLabel: "Recreational",   rightLabel: "Therapeutic",       leftEmoji: "🎭", rightEmoji: "🏥",  leftColor: "#0284c7", rightColor: "#15803d" },
 ];
 
+// ── Archetype visual themes (one per archetype) ───────────────────────────────
+const ARCHETYPE_THEMES = {
+  "The Creative Explorer": {
+    gradient: "linear-gradient(135deg, #1e1b4b 0%, #312e81 35%, #7c3aed 65%, #d97706 100%)",
+    primary: "#f59e0b", secondary: "#7c3aed", textOnBg: "#ede9fe",
+    emoji: "🚀", colorName: "Electric Nebula",
+    tagline: "You turn the unknown into art.",
+    strengths: ["Divergent thinking", "Artistic vision", "Intellectual curiosity", "Innovation"],
+    idealSetting: "Daytime creative sessions, brainstorming, music, art",
+    famousPeople: [
+      { name: "Carl Sagan", note: "Wrote anonymously about cannabis expanding creative insight and cosmic thinking." },
+      { name: "Steve Jobs",  note: "Credited cannabis and psychedelics with deepening his design intuition." },
+      { name: "Lady Gaga",   note: "Uses cannabis to fuel boundary-pushing artistic vision and manage chronic pain." },
+    ],
+  },
+  "The Gentle Healer": {
+    gradient: "linear-gradient(135deg, #064e3b 0%, #065f46 35%, #10b981 65%, #fda4af 100%)",
+    primary: "#6ee7b7", secondary: "#fda4af", textOnBg: "#ecfdf5",
+    emoji: "🌸", colorName: "Healing Garden",
+    tagline: "You heal with intention and grace.",
+    strengths: ["Empathy", "Mindfulness", "Holistic thinking", "Sensitivity"],
+    idealSetting: "Evening wind-down, meditation, chronic pain relief",
+    famousPeople: [
+      { name: "Bob Marley",       note: "Advocated cannabis as a natural healing sacrament and spiritual practice." },
+      { name: "Whoopi Goldberg",  note: "Founded a CBD wellness brand focused on chronic pain and menstrual relief." },
+      { name: "Montel Williams",  note: "Open champion of therapeutic cannabis for MS pain management since 2001." },
+    ],
+  },
+  "The Restful Restorer": {
+    gradient: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 35%, #312e81 65%, #6d28d9 100%)",
+    primary: "#818cf8", secondary: "#c4b5fd", textOnBg: "#e0e7ff",
+    emoji: "🌙", colorName: "Midnight Indigo",
+    tagline: "You restore what the day takes away.",
+    strengths: ["Deep introspection", "Sleep quality", "Emotional resilience", "Recovery"],
+    idealSetting: "Evening, sleep support, solo reflection, muscle recovery",
+    famousPeople: [
+      { name: "Willie Nelson",  note: "Legendary for his meditative, restorative evening relationship with cannabis." },
+      { name: "Morgan Freeman", note: "Discussed cannabis candidly for managing fibromyalgia and finding deep rest." },
+      { name: "Neil Young",     note: "Uses cannabis for peace, pain management, and late-night creative restoration." },
+    ],
+  },
+  "The Social Connector": {
+    gradient: "linear-gradient(135deg, #7c2d12 0%, #c2410c 35%, #f97316 65%, #fbbf24 100%)",
+    primary: "#fb923c", secondary: "#fbbf24", textOnBg: "#fff7ed",
+    emoji: "🎉", colorName: "Amber Fire",
+    tagline: "You turn every room into a celebration.",
+    strengths: ["Charisma", "Emotional connection", "Social energy", "Empathic bonding"],
+    idealSetting: "Social gatherings, concerts, dinner parties, date nights",
+    famousPeople: [
+      { name: "Seth Rogen",    note: "Built Houseplant around social, communal cannabis experiences." },
+      { name: "Miley Cyrus",   note: "Amplifies her high-energy, extroverted presence through curated cannabis use." },
+      { name: "Rihanna",       note: "Integrates cannabis naturally into social, creative, and artistic settings." },
+    ],
+  },
+  "The Connoisseur": {
+    gradient: "linear-gradient(135deg, #022c22 0%, #064e3b 35%, #065f46 65%, #ca8a04 100%)",
+    primary: "#d97706", secondary: "#34d399", textOnBg: "#ecfdf5",
+    emoji: "🏆", colorName: "Emerald Reserve",
+    tagline: "You seek craft, complexity, and mastery.",
+    strengths: ["Deep product knowledge", "Terpene sensitivity", "Ritual", "Quality curation"],
+    idealSetting: "Strain tasting, craft exploration, evening ritual, COA study",
+    famousPeople: [
+      { name: "Snoop Dogg",    note: "The gold standard of cannabis connoisseurship — terpenes, craft, and ritual." },
+      { name: "Wiz Khalifa",   note: "Releases strain-specific content and educates fans on terpene profiles." },
+      { name: "Tommy Chong",   note: "Decades of deep knowledge on cultivation, strain genetics, and intentional use." },
+    ],
+  },
+  "The Balanced Seeker": {
+    gradient: "linear-gradient(135deg, #14532d 0%, #166534 35%, #16a34a 65%, #92400e 100%)",
+    primary: "#4ade80", secondary: "#d97706", textOnBg: "#f0fdf4",
+    emoji: "⚖️", colorName: "Balanced Earth",
+    tagline: "You find harmony in every season.",
+    strengths: ["Adaptability", "Consistent results", "Measured approach", "Broad compatibility"],
+    idealSetting: "Any time of day — versatile, grounded, and adaptable",
+    famousPeople: [
+      { name: "Michael Phelps",       note: "World's most decorated Olympian — uses cannabis for balance and recovery." },
+      { name: "Barack Obama",          note: "Spoke of cannabis as a measured, balanced part of his younger exploration." },
+      { name: "Kareem Abdul-Jabbar",   note: "Advocates balanced, intentional cannabis use for migraines and longevity." },
+    ],
+  },
+};
+
+// ── Archetype card component ───────────────────────────────────────────────────
+function ArchetypeCard({ archetype, archetypeSub }) {
+  const theme = ARCHETYPE_THEMES[archetype];
+  if (!theme) return null;
+  return (
+    <div className="atype-card" style={{ background: theme.gradient }}>
+      {/* Header */}
+      <div className="atype-card__header">
+        <div className="atype-card__char-col">
+          <div className="atype-card__emoji">{theme.emoji}</div>
+          <div className="atype-card__color-name">{theme.colorName}</div>
+        </div>
+        <div className="atype-card__identity" style={{ color: theme.textOnBg }}>
+          <div className="atype-card__type-label">Your Cannabis Archetype</div>
+          <h2 className="atype-card__name">{archetype}</h2>
+          <p className="atype-card__tagline">"{theme.tagline}"</p>
+          <p className="atype-card__sub">{archetypeSub}</p>
+          <div className="atype-card__strengths">
+            {theme.strengths.map(s => (
+              <span key={s} className="atype-strength">{s}</span>
+            ))}
+          </div>
+          <div className="atype-card__ideal">
+            <span className="atype-ideal-icon">✨</span>
+            {theme.idealSetting}
+          </div>
+        </div>
+      </div>
+      {/* Famous people */}
+      <div className="atype-card__famous" style={{ color: theme.textOnBg }}>
+        <div className="atype-card__famous-label">Famous {archetype}s</div>
+        <div className="atype-card__famous-grid">
+          {theme.famousPeople.map(p => (
+            <div key={p.name} className="atype-famous">
+              <div className="atype-famous__name">{p.name}</div>
+              <div className="atype-famous__note">{p.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function deriveProfile(answers) {
   if (!answers) return null;
   const { effect = 50, thc_sensitivity = 50, cbd_importance = 50, anxiety = 50,
@@ -488,6 +614,11 @@ export default function Dashboard() {
           <Link to="/log" className="btn btn--primary btn--sm">+ Log Experience</Link>
         </div>
       </header>
+
+      {/* ── Archetype theme card ── */}
+      {profile && (
+        <ArchetypeCard archetype={profile.archetype} archetypeSub={profile.archetypeSub} />
+      )}
 
       {/* ── Accordion sections ── */}
       <div className="dash-accordions">
