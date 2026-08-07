@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
+import { startPresence } from "./services/presenceService.js";
 import Navbar from "./components/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import Assessment from "./pages/Assessment.jsx";
@@ -22,6 +24,8 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
+  useEffect(() => startPresence(), []);
+
   return (
     <>
       <Navbar />
