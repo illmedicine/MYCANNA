@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { logExperience } from "../services/experienceService.js";
+import { logActivity } from "../services/activityService.js";
 import { lookupProduct } from "../services/productLookup.js";
 import {
   scrapeLabPhotos,
@@ -294,6 +295,10 @@ export default function LogExperience() {
         rating:          notes.rating,
         wouldBuyAgain:   notes.wouldBuyAgain,
         isDetailed:      !!notes.effects,
+      });
+      logActivity("experience_logged", {
+        productName: product.name || null,
+        rating: notes.rating || null,
       });
       setStep(4);
     } catch (err) {

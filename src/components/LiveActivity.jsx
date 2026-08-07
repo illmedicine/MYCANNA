@@ -1,63 +1,73 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { subscribeActivity, formatActivity } from '../services/activityService.js';
 
-const EVENTS = [
-  { icon: '🌿', text: 'Marcus from Buffalo just joined Mycana' },
-  { icon: '📊', text: 'Keisha just completed her cannabis profile' },
-  { icon: '📝', text: 'Tyler logged Northern Lights · rated 9/10' },
-  { icon: '🏆', text: 'Amanda earned Seasoned Explorer status' },
-  { icon: '🗺️', text: 'Jordan found a vendor match in Amherst' },
-  { icon: '👥', text: '14 people are browsing profiles right now' },
-  { icon: '🌿', text: 'Priya from Cheektowaga just joined Mycana' },
-  { icon: '📊', text: 'Devon completed the 8-factor assessment' },
-  { icon: '📝', text: 'Simone logged Blue Dream · great experience' },
-  { icon: '🏆', text: 'Chris just reached Certified Connoisseur' },
-  { icon: '👥', text: '23 WNY residents joined this week' },
-  { icon: '🌿', text: 'Ray from Tonawanda just discovered their profile' },
-  { icon: '📝', text: 'Alex logged Gelato #33 · matched their profile' },
-  { icon: '🗺️', text: 'A new dispensary is joining Mycana soon' },
-  { icon: '🏆', text: 'Destiny reached 500 prestige points' },
-];
-
-const SHOW_MS  = 5000;
-const GAP_MS   = 1800;
-const DELAY_MS = 8000; // initial delay before first toast
+const SHOW_MS = 5000;
+const GAP_MS  = 700;
+const INITIAL_DELAY_MS = 6000; // wait before showing the first historical event
 
 export default function LiveActivity() {
-  const [idx,     setIdx]     = useState(0);
-  const [visible, setVisible] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [current,   setCurrent]   = useState(null);
+  const [visible,   setVisible]   = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  const next = useCallback((current) => {
-    setVisible(false);
-    setTimeout(() => {
-      setIdx((current + 1) % EVENTS.length);
-      setVisible(true);
-    }, GAP_MS);
-  }, []);
+  const showing  = useRef(false);
+  const queue    = useRef([]);
+  const timerRef = useRef(null);
+
+  const showEvent = useCallback((event) => {
+    if (dismissed) return;
+    const formatted = formatActivity(event);
+    if (!formatted) return;
+
+    showing.current = true;
+    setCurrent(formatted);
+    setVisible(true);
+
+    timerRef.current = setTimeout(() => {
+      setVisible(false);
+      setTimeout(() => {
+        showing.current = false;
+        setCurrent(null);
+        if (queue.current.length > 0) {
+          showEvent(queue.current.shift());
+        }
+      }, GAP_MS);
+    }, SHOW_MS);
+  }, [dismissed]);
+
+  const enqueue = useCallback((event) => {
+    if (dismissed) return;
+    if (showing.current) {
+      queue.current.push(event);
+    } else {
+      showEvent(event);
+    }
+  }, [dismissed, showEvent]);
 
   useEffect(() => {
     if (dismissed) return;
 
-    // Initial delay so the page doesn't immediately pop something on load
-    const init = setTimeout(() => {
-      setMounted(true);
-      setVisible(true);
-    }, DELAY_MS);
+    let initTimer = null;
 
-    return () => clearTimeout(init);
-  }, [dismissed]);
+    const unsub = subscribeActivity({
+      onInitial: (event) => {
+        // Show the most recent real event after the initial page-load delay
+        initTimer = setTimeout(() => enqueue(event), INITIAL_DELAY_MS);
+      },
+      onLive: (event) => {
+        // New real platform event — show immediately (or queue)
+        enqueue(event);
+      },
+    });
 
-  useEffect(() => {
-    if (!mounted || !visible || dismissed) return;
+    return () => {
+      unsub();
+      clearTimeout(initTimer);
+      clearTimeout(timerRef.current);
+    };
+  }, [dismissed, enqueue]);
 
-    const timer = setTimeout(() => next(idx), SHOW_MS);
-    return () => clearTimeout(timer);
-  }, [mounted, visible, idx, dismissed, next]);
-
-  if (!mounted || dismissed) return null;
-
-  const event = EVENTS[idx];
+  if (!current) return null;
 
   return (
     <div
@@ -69,11 +79,11 @@ export default function LiveActivity() {
         <span className="live-toast__dot" />
         LIVE
       </div>
-      <div className="live-toast__icon">{event.icon}</div>
-      <div className="live-toast__text">{event.text}</div>
+      <div className="live-toast__icon">{current.icon}</div>
+      <div className="live-toast__text">{current.text}</div>
       <button
         className="live-toast__close"
-        onClick={() => setDismissed(true)}
+        onClick={() => { setDismissed(true); setCurrent(null); }}
         aria-label="Dismiss"
       >
         ×

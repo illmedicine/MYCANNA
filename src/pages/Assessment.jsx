@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { saveProfile } from "../services/userService.js";
+import { logActivity } from "../services/activityService.js";
 import BiSlider from "../components/BiSlider.jsx";
 
 const QUESTIONS = [
@@ -172,6 +173,7 @@ export default function Assessment() {
         const fullProfile = { ...answers, consumptionPrefs };
         await saveProfile(user.id, fullProfile);
         setSavedProfile(fullProfile);
+        logActivity("assessment_completed", { archetype: fullProfile.archetype ?? null });
         navigate("/dashboard");
       } catch (err) {
         console.error("Failed to save profile", err);

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import { auth, googleProvider } from "../firebase.js";
 import { ensureUserDoc, getUserDoc, saveHealthData } from "../services/userService.js";
+import { logActivity } from "../services/activityService.js";
 
 const AuthContext = createContext(null);
 
@@ -29,11 +30,15 @@ export function AuthProvider({ children }) {
         // ensureUserDoc runs on every auth restore — creates the stats doc and
         // user doc if they don't exist yet (idempotent for existing users).
         try {
-          await ensureUserDoc(firebaseUser.uid, {
+          const { isNew } = await ensureUserDoc(firebaseUser.uid, {
             name:    firebaseUser.displayName,
             email:   firebaseUser.email,
             picture: firebaseUser.photoURL,
           });
+          if (isNew) {
+            const firstName = (firebaseUser.displayName || "").split(" ")[0] || null;
+            logActivity("user_joined", { firstName });
+          }
           const userDoc = await getUserDoc(firebaseUser.uid);
           setSavedProfile(userDoc?.profile ?? null);
           setHealthData(userDoc?.healthData ?? null);

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getAllVendorsAdmin, approveVendor, rejectVendor,
 } from "../services/vendorService.js";
+import { logActivity } from "../services/activityService.js";
 import "./AdminPortal.css";
 
 // Change this PIN in .env.local → VITE_ADMIN_PIN=xxxx
@@ -220,6 +221,13 @@ export default function AdminPortal() {
 
   const handleApprove = async (id) => {
     await approveVendor(id);
+    const vendor = vendors.find(v => v.id === id);
+    if (vendor) {
+      logActivity("vendor_approved", {
+        storeName: vendor.storeName || null,
+        city: vendor.city || null,
+      });
+    }
     await load();
   };
 

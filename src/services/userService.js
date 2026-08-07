@@ -44,8 +44,10 @@ export async function ensureUserDoc(uid, { name, email, picture }) {
     });
     // New user — increment from the backfilled baseline
     await setDoc(STATS_REF(), { totalUsers: increment(1) }, { merge: true });
+    return { isNew: true };
   } else {
     await setDoc(ref, { name, email, picture, updatedAt: serverTimestamp() }, { merge: true });
+    return { isNew: false };
   }
 }
 

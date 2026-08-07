@@ -5,6 +5,7 @@ import {
   getVendorByOwner, getVendorProducts, addProduct,
   updateProduct, deleteProduct, uploadProductImage, updateVendorProfile,
 } from "../services/vendorService.js";
+import { logActivity } from "../services/activityService.js";
 import "./VendorDashboard.css";
 
 const PRODUCT_LIMIT = { free: 10, standard: Infinity, premium: Infinity };
@@ -578,6 +579,10 @@ export default function VendorDashboard() {
       await updateProduct(data.id, data);
     } else {
       await addProduct(vendor.id, { ...data, region: vendor.region || "WNY" });
+      logActivity("product_added", {
+        productName: data.name || null,
+        vendorName:  vendor.storeName || null,
+      });
     }
     setProducts(await getVendorProducts(vendor.id));
   };
