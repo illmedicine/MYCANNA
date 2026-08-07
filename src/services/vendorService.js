@@ -50,8 +50,7 @@ export async function addProduct(vendorId, productData) {
 export async function getVendorProducts(vendorId) {
   const q = query(
     collection(db, "products"),
-    where("vendorId", "==", vendorId),
-    where("inStock", "==", true)
+    where("vendorId", "==", vendorId)
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));

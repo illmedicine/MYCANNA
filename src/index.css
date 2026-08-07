@@ -723,6 +723,22 @@ input { font-family: inherit; }
 .vendor-card__footer  { display: flex; align-items: center; justify-content: space-between; }
 .vendor-card__type    { font-size: .75rem; color: var(--c-text-muted); }
 
+/* ── Vendor card product listing ─────────────────────────────────────── */
+.vendor-card__products       { border-top: 1px solid var(--c-border); padding: 12px 0 4px; margin-bottom: 12px; }
+.vendor-card__products-label { font-size: .72rem; font-weight: 600; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.vendor-card__products-count { font-weight: 400; margin-left: 4px; }
+.vendor-card__product-list   { display: flex; flex-direction: column; gap: 6px; }
+
+.vcard-product        { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--c-demo-bg); border-radius: 8px; }
+.vcard-product__img   { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.vcard-product__icon  { width: 36px; height: 36px; border-radius: 6px; background: var(--c-border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.vcard-product__info  { flex: 1; min-width: 0; }
+.vcard-product__name  { font-size: .82rem; font-weight: 500; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vcard-product__meta  { display: flex; gap: 6px; margin-top: 2px; }
+.vcard-thc            { font-size: .7rem; color: var(--c-primary-mid); font-weight: 600; }
+.vcard-price          { font-size: .7rem; color: var(--c-text-muted); }
+.vcard-product--more  { justify-content: center; font-size: .75rem; color: var(--c-text-muted); background: transparent; border: 1px dashed var(--c-border); }
+
 .discover__profile-cta {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   background: var(--c-demo-bg); border: 1px solid var(--c-border);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { getApprovedVendors } from "../services/vendorService.js";
+import { getApprovedVendors, getAllProducts } from "../services/vendorService.js";
 
 function profileMatchScore(userProfile, vendor) {
   if (!userProfile || !vendor.profileTags) return null;
@@ -16,6 +16,17 @@ function profileMatchScore(userProfile, vendor) {
   return Math.min(score, 99);
 }
 
+const CAT_ICON = {
+  flower: "🌿", Flower: "🌿",
+  vape: "💨", Vape: "💨",
+  edible: "🍫", Edible: "🍫",
+  concentrate: "💎", Concentrate: "💎",
+  preroll: "🚬", "Pre-Roll": "🚬",
+  tincture: "🧪", Tincture: "🧪",
+  topical: "🧴", Topical: "🧴",
+  capsule: "💊", Capsule: "💊",
+};
+
 function MatchBadge({ score }) {
   const color = score >= 85 ? "#10b981" : score >= 70 ? "#f59e0b" : "#94a3b8";
   return (
@@ -25,9 +36,10 @@ function MatchBadge({ score }) {
   );
 }
 
-function VendorCard({ vendor, userProfile }) {
+function VendorCard({ vendor, userProfile, products = [] }) {
   const score = profileMatchScore(userProfile, vendor);
   const tierLabel = { free: "", standard: "⭐ Standard", premium: "⭐⭐ Premium" }[vendor.tier] || "";
+  const inStock = products.filter((p) => p.inStock !== false);
 
   return (
     <div className={`vendor-card vendor-card--${vendor.tier}`}>
@@ -44,6 +56,38 @@ function VendorCard({ vendor, userProfile }) {
           ))}
         </div>
       </div>
+
+      {/* Product listing */}
+      {inStock.length > 0 && (
+        <div className="vendor-card__products">
+          <div className="vendor-card__products-label">
+            Menu <span className="vendor-card__products-count">{inStock.length} items</span>
+          </div>
+          <div className="vendor-card__product-list">
+            {inStock.slice(0, 6).map((p) => (
+              <div key={p.id} className="vcard-product">
+                {p.imageUrl
+                  ? <img src={p.imageUrl} alt={p.name} className="vcard-product__img" />
+                  : <div className="vcard-product__icon">{CAT_ICON[p.category] || "🌿"}</div>
+                }
+                <div className="vcard-product__info">
+                  <div className="vcard-product__name">{p.name}</div>
+                  <div className="vcard-product__meta">
+                    {p.thcPct ? <span className="vcard-thc">THC {p.thcPct}%</span> : null}
+                    {p.price  ? <span className="vcard-price">${parseFloat(p.price).toFixed(0)}</span> : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {inStock.length > 6 && (
+              <div className="vcard-product vcard-product--more">
+                +{inStock.length - 6} more
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="vendor-card__footer">
         {vendor.website && (
           <a href={vendor.website} target="_blank" rel="noreferrer" className="btn btn--sm btn--outline">
@@ -61,15 +105,20 @@ function VendorCard({ vendor, userProfile }) {
 export default function Discover() {
   const { user, savedProfile } = useAuth();
   const navigate = useNavigate();
-  const [vendors, setVendors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [search, setSearch] = useState("");
+  const [vendors,  setVendors]  = useState([]);
+  const [products, setProducts] = useState([]); // all WNY products
+  const [loading,  setLoading]  = useState(true);
+  const [filter,   setFilter]   = useState("all");
+  const [search,   setSearch]   = useState("");
 
   useEffect(() => {
-    getApprovedVendors()
-      .then(setVendors)
-      .catch(console.error)
+    Promise.all([
+      getApprovedVendors(),
+      getAllProducts("WNY").catch(() => []),
+    ]).then(([v, p]) => {
+      setVendors(v);
+      setProducts(p);
+    }).catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
@@ -147,7 +196,12 @@ export default function Discover() {
 
         <div className="vendor-grid">
           {filtered.map((v) => (
-            <VendorCard key={v.id} vendor={v} userProfile={savedProfile} />
+            <VendorCard
+              key={v.id}
+              vendor={v}
+              userProfile={savedProfile}
+              products={products.filter((p) => p.vendorId === v.id)}
+            />
           ))}
         </div>
 
