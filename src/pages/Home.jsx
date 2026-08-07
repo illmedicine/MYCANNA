@@ -291,6 +291,19 @@ export default function Home() {
           <Link to="/investors" style={{ color: 'inherit', textDecoration: 'underline' }}>Investor Overview</Link>
           {' · '}A product of <a href="https://www.illyrobotic-ai.com" style={{ color: 'inherit', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Illy Robotic Instruments</a>
         </p>
+        <Link
+          to="/admin"
+          style={{
+            display: 'inline-block',
+            marginTop: '20px',
+            fontSize: '.65rem',
+            opacity: '.18',
+            color: 'inherit',
+            letterSpacing: '.06em',
+          }}
+        >
+          ⚙
+        </Link>
       </footer>
     </main>
   );

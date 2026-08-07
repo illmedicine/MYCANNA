@@ -11,6 +11,8 @@ import Leaderboard from "./pages/Leaderboard.jsx";
 import Founder from "./pages/Founder.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import InvestorPitch from "./pages/InvestorPitch.jsx";
+import AdminPortal from "./pages/AdminPortal.jsx";
+import VendorDashboard from "./pages/VendorDashboard.jsx";
 import LiveActivity from "./components/LiveActivity.jsx";
 
 function ProtectedRoute({ children }) {
@@ -31,6 +33,8 @@ function AppRoutes() {
         <Route path="/vendor/register" element={<VendorRegister />} />
         <Route path="/founder" element={<Founder />} />
         <Route path="/investors" element={<InvestorPitch />} />
+        <Route path="/admin" element={<AdminPortal />} />
+        <Route path="/vendor/dashboard" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
         <Route path="/assessment" element={<ProtectedRoute><Assessment /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

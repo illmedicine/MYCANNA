@@ -86,8 +86,11 @@ export default function Navbar() {
                   <Link to="/profile" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>👤</span> My Profile
                   </Link>
+                  <Link to="/vendor/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
+                    <span>🏪</span> My Store Dashboard
+                  </Link>
                   <Link to="/vendor/register" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
-                    <span>🏪</span> List My Store
+                    <span>➕</span> List My Store
                   </Link>
                   <button className="nav-menu__link nav-menu__signout" onClick={handleSignOut}>
                     <span>↩️</span> Sign Out

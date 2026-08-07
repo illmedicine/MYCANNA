@@ -1,0 +1,276 @@
+/* ─── Admin Portal ───────────────────────────────────────────────── */
+
+/* ── PIN Gate ── */
+.adm-pin-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg-dark);
+}
+
+.adm-pin-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-lg);
+  padding: 48px 40px;
+  text-align: center;
+  width: 320px;
+  transition: transform .12s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-6px); }
+  80%      { transform: translateX(6px); }
+}
+
+.adm-pin-card--shake { animation: shake .4s ease; }
+
+.adm-pin-icon  { font-size: 2.4rem; margin-bottom: 16px; }
+.adm-pin-title { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.adm-pin-sub   { font-size: .85rem; color: rgba(255,255,255,.45); margin-bottom: 28px; }
+
+.adm-pin-inputs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.adm-pin-input {
+  width: 56px;
+  height: 64px;
+  border-radius: var(--r-md);
+  border: 2px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: 1.6rem;
+  text-align: center;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.adm-pin-input:focus { border-color: var(--c-primary-light); }
+.adm-pin-hint { font-size: .8rem; color: #ef4444; }
+
+/* ── Admin Page ── */
+.adm-wrap { min-height: 100vh; background: #f0f4f0; }
+
+.adm-header {
+  background: var(--c-bg-dark);
+  padding: 0 0 0;
+  color: #fff;
+}
+
+.adm-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.adm-header__title { font-weight: 800; font-size: 1.2rem; color: var(--c-primary-light); }
+.adm-header__sub   { font-size: .78rem; color: rgba(255,255,255,.45); }
+
+.adm-stats {
+  display: flex;
+  gap: 0;
+  padding: 0;
+}
+
+.adm-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+
+.adm-stat:last-child { border-right: none; }
+
+.adm-stat__n { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+.adm-stat__l { font-size: .7rem; color: rgba(255,255,255,.4); margin-top: 4px; }
+
+/* ── Body ── */
+.adm-body { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
+
+/* ── Tabs ── */
+.adm-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--c-bg-card);
+  border-radius: var(--r-md);
+  padding: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.adm-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: var(--r-sm);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.adm-tab:hover { background: var(--c-bg); color: var(--c-text); }
+.adm-tab--active { background: var(--c-primary); color: #fff; }
+
+/* ── Vendor List ── */
+.adm-vendor-list { display: flex; flex-direction: column; gap: 8px; }
+.adm-empty { text-align: center; padding: 40px; color: var(--c-text-muted); font-size: .9rem; }
+
+.adm-vendor {
+  background: var(--c-bg-card);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--c-border);
+  transition: box-shadow .15s;
+}
+
+.adm-vendor:hover { box-shadow: var(--shadow-md); }
+
+.adm-vendor__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.adm-vendor__status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.adm-vendor__main { flex: 1; min-width: 0; }
+.adm-vendor__name {
+  display: block;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-vendor__meta { font-size: .75rem; color: var(--c-text-muted); }
+
+.adm-vendor__tier {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-bg);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border);
+  white-space: nowrap;
+}
+
+.adm-vendor__date {
+  font-size: .72rem;
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+.adm-vendor__chevron {
+  font-size: .65rem;
+  color: var(--c-text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Vendor Detail ── */
+.adm-vendor__detail {
+  border-top: 1px solid var(--c-border);
+  padding: 16px;
+  background: var(--c-bg);
+}
+
+.adm-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.adm-detail-grid__full { grid-column: 1 / -1; }
+
+.adm-detail-grid > div,
+.adm-detail-grid__full {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-detail-grid strong { font-size: .65rem; font-weight: 700; letter-spacing: .08em; color: var(--c-text-muted); text-transform: uppercase; }
+.adm-detail-grid span  { font-size: .85rem; color: var(--c-text); }
+
+/* ── Action Buttons ── */
+.adm-vendor__actions {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.adm-btn--approve {
+  background: #10b981;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--r-full);
+  font-weight: 600;
+  font-size: .88rem;
+}
+
+.adm-btn--approve:hover { background: #059669; }
+
+.adm-btn--reject {
+  background: transparent;
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  padding: 10px 20px;
+  border-radius: var(--r-full);
+  font-weight: 600;
+  font-size: .88rem;
+}
+
+.adm-btn--reject:hover { background: #ef4444; color: #fff; }
+
+.adm-reject-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.adm-reject-form textarea {
+  width: 100%;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  font-family: var(--font);
+  font-size: .85rem;
+  resize: vertical;
+  background: var(--c-bg-card);
+}
+
+@media (max-width: 640px) {
+  .adm-detail-grid    { grid-template-columns: repeat(2, 1fr); }
+  .adm-header__inner  { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .adm-vendor__date   { display: none; }
+  .adm-tabs           { flex-wrap: wrap; }
+}
