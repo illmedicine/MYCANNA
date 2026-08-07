@@ -1605,144 +1605,177 @@ input { font-family: inherit; }
 .dash-section-hint { font-size: .75rem; font-weight: 400; color: var(--c-text-muted); text-transform: none; letter-spacing: 0; }
 
 /* ─── Body Viz ─── */
-/* ── Archetype Theme Card ────────────────────────────────────────────────── */
+/* ── Archetype Card — 16-personalities style with medieval avatar ─────────── */
 .atype-card {
   border-radius: 20px;
   overflow: hidden;
   margin: 0 0 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.28);
+  box-shadow: 0 8px 40px rgba(0,0,0,.32), 0 2px 8px rgba(0,0,0,.15);
+  position: relative;
 }
-.atype-card__header {
+/* Hero — avatar floats over the gradient */
+.atype-card__hero {
   display: flex;
-  gap: 28px;
-  padding: 30px 28px 20px;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 28px 24px 0;
+  min-height: 230px;
+  position: relative;
+  overflow: hidden;
 }
-.atype-card__char-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  min-width: 110px;
-}
-.atype-card__emoji {
-  font-size: 78px;
-  line-height: 1;
-  filter: drop-shadow(0 0 18px rgba(255,255,255,.35));
-  animation: atype-float 5s ease-in-out infinite;
+.atype-card__avatar-wrap {
+  width: 170px;
+  height: 220px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,.4));
+  animation: atype-float 6s ease-in-out infinite;
 }
 @keyframes atype-float {
   0%,100% { transform: translateY(0px); }
-  50%      { transform: translateY(-9px); }
+  50%      { transform: translateY(-10px); }
 }
-.atype-card__color-name {
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.25);
+.atype-card__avatar-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 36px;
+  background: rgba(0,0,0,.28);
+  border-radius: 50%;
+  filter: blur(14px);
+}
+/* Info panel — semi-transparent dark overlay at bottom */
+.atype-card__info {
+  padding: 18px 24px 24px;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ffffff;
+}
+.atype-card__class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.3);
   border-radius: 20px;
-  padding: 3px 12px;
-  color: rgba(255,255,255,.85);
-  white-space: nowrap;
-}
-.atype-card__identity { flex: 1; }
-.atype-card__type-label {
+  padding: 4px 14px;
   font-size: .68rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
-  opacity: .6;
-  margin-bottom: 4px;
+  color: white;
+  margin-bottom: 10px;
 }
 .atype-card__name {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
+  margin: 0 0 5px;
   line-height: 1.1;
-  margin: 0 0 6px;
+  color: white;
 }
 .atype-card__tagline {
-  font-size: .92rem;
+  font-size: .88rem;
   font-style: italic;
-  opacity: .8;
+  opacity: .82;
   margin: 0 0 8px;
+  color: white;
 }
 .atype-card__sub {
-  font-size: .8rem;
-  opacity: .7;
+  font-size: .78rem;
+  opacity: .72;
   line-height: 1.55;
   margin: 0 0 14px;
+  color: white;
 }
 .atype-card__strengths {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .atype-strength {
-  font-size: .7rem;
-  font-weight: 600;
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.28);
+  font-size: .68rem;
+  font-weight: 700;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.26);
   border-radius: 20px;
-  padding: 3px 11px;
+  padding: 3px 10px;
+  color: white;
 }
 .atype-card__ideal {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: .78rem;
-  opacity: .75;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,.15);
+  opacity: .76;
+  color: white;
+  margin-bottom: 16px;
 }
-.atype-ideal-icon { font-size: 1rem; }
 /* Famous people */
 .atype-card__famous {
-  padding: 16px 28px 24px;
-  border-top: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.18);
+  border-top: 1px solid rgba(255,255,255,.15);
+  padding-top: 14px;
+  margin-top: 2px;
 }
 .atype-card__famous-label {
-  font-size: .64rem;
-  font-weight: 700;
-  letter-spacing: .1em;
+  font-size: .63rem;
+  font-weight: 800;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  opacity: .55;
-  margin-bottom: 12px;
+  opacity: .58;
+  color: white;
+  margin-bottom: 10px;
 }
 .atype-card__famous-grid {
   display: grid;
   grid-template-columns: repeat(3,1fr);
-  gap: 12px;
+  gap: 8px;
 }
 .atype-famous {
-  background: rgba(0,0,0,.22);
+  background: rgba(255,255,255,.1);
   border: 1px solid rgba(255,255,255,.12);
-  border-radius: 12px;
-  padding: 12px 14px;
-  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 .atype-famous__name {
-  font-size: .82rem;
+  font-size: .78rem;
   font-weight: 700;
-  margin-bottom: 5px;
+  color: white;
+  margin-bottom: 4px;
 }
 .atype-famous__note {
-  font-size: .72rem;
-  opacity: .7;
-  line-height: 1.45;
+  font-size: .68rem;
+  opacity: .72;
+  color: white;
+  line-height: 1.42;
+}
+/* AI Insights preview emoji row (visible in collapsed header) */
+.dash-accord__preview {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: 2px;
+}
+.insight-preview-row {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.insight-preview-emoji {
+  font-size: .88rem;
+  line-height: 1;
+  opacity: .62;
 }
 @media (max-width: 640px) {
-  .atype-card__header   { flex-direction: column; align-items: center; padding: 22px 18px 16px; }
-  .atype-card__name     { font-size: 1.6rem; text-align: center; }
-  .atype-card__tagline,
-  .atype-card__sub      { text-align: center; }
-  .atype-card__strengths { justify-content: center; }
-  .atype-card__ideal     { justify-content: center; }
-  .atype-card__famous    { padding: 14px 16px 20px; }
+  .atype-card__hero { min-height: 190px; }
+  .atype-card__avatar-wrap { width: 140px; height: 182px; }
+  .atype-card__name { font-size: 1.45rem; }
   .atype-card__famous-grid { grid-template-columns: 1fr; }
+  .atype-card__info { padding: 14px 16px 20px; }
 }
 
 .dash-body-section {

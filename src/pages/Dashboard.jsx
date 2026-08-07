@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import BodyViz from "../components/BodyViz.jsx";
 import BiSlider from "../components/BiSlider.jsx";
+import { ARCHETYPE_AVATARS } from "../components/ArchetypeAvatars.jsx";
 import { getUserExperiences } from "../services/experienceService.js";
 import { getUserPrestige } from "../services/prestigeService.js";
 
@@ -205,44 +206,51 @@ const ARCHETYPE_THEMES = {
   },
 };
 
-// ── Archetype card component ───────────────────────────────────────────────────
+// ── Archetype card — 16-personalities style with medieval avatar ───────────────
 function ArchetypeCard({ archetype, archetypeSub }) {
   const theme = ARCHETYPE_THEMES[archetype];
-  if (!theme) return null;
+  const avatarInfo = ARCHETYPE_AVATARS[archetype];
+  if (!theme || !avatarInfo) return null;
+  const { Avatar, character } = avatarInfo;
   return (
     <div className="atype-card" style={{ background: theme.gradient }}>
-      {/* Header */}
-      <div className="atype-card__header">
-        <div className="atype-card__char-col">
-          <div className="atype-card__emoji">{theme.emoji}</div>
-          <div className="atype-card__color-name">{theme.colorName}</div>
+      {/* ── Avatar hero ── */}
+      <div className="atype-card__hero">
+        <div className="atype-card__avatar-wrap">
+          <Avatar />
         </div>
-        <div className="atype-card__identity" style={{ color: theme.textOnBg }}>
-          <div className="atype-card__type-label">Your Cannabis Archetype</div>
-          <h2 className="atype-card__name">{archetype}</h2>
-          <p className="atype-card__tagline">"{theme.tagline}"</p>
-          <p className="atype-card__sub">{archetypeSub}</p>
-          <div className="atype-card__strengths">
-            {theme.strengths.map(s => (
-              <span key={s} className="atype-strength">{s}</span>
+        <div className="atype-card__avatar-glow" />
+      </div>
+
+      {/* ── Info panel ── */}
+      <div className="atype-card__info">
+        <div className="atype-card__class-badge">
+          <span>{character}</span>
+        </div>
+        <h2 className="atype-card__name">{archetype}</h2>
+        <p className="atype-card__tagline">"{theme.tagline}"</p>
+        <p className="atype-card__sub">{archetypeSub}</p>
+        <div className="atype-card__strengths">
+          {theme.strengths.map(s => (
+            <span key={s} className="atype-strength">{s}</span>
+          ))}
+        </div>
+        <div className="atype-card__ideal">
+          <span>✨</span>
+          {theme.idealSetting}
+        </div>
+
+        {/* Famous people */}
+        <div className="atype-card__famous">
+          <div className="atype-card__famous-label">Famous {character}s</div>
+          <div className="atype-card__famous-grid">
+            {theme.famousPeople.map(p => (
+              <div key={p.name} className="atype-famous">
+                <div className="atype-famous__name">{p.name}</div>
+                <div className="atype-famous__note">{p.note}</div>
+              </div>
             ))}
           </div>
-          <div className="atype-card__ideal">
-            <span className="atype-ideal-icon">✨</span>
-            {theme.idealSetting}
-          </div>
-        </div>
-      </div>
-      {/* Famous people */}
-      <div className="atype-card__famous" style={{ color: theme.textOnBg }}>
-        <div className="atype-card__famous-label">Famous {archetype}s</div>
-        <div className="atype-card__famous-grid">
-          {theme.famousPeople.map(p => (
-            <div key={p.name} className="atype-famous">
-              <div className="atype-famous__name">{p.name}</div>
-              <div className="atype-famous__note">{p.note}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
@@ -403,7 +411,7 @@ function generateInsights(profile, healthData, experiences) {
 }
 
 // ── Collapsible section ───────────────────────────────────────────────────────
-function Collapsible({ icon, title, badge, summary, defaultOpen = false, children, headerExtra }) {
+function Collapsible({ icon, title, badge, summary, defaultOpen = false, children, headerExtra, headerPreview }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className={`dash-accord ${open ? "dash-accord--open" : ""}`}>
@@ -414,7 +422,8 @@ function Collapsible({ icon, title, badge, summary, defaultOpen = false, childre
           {badge !== undefined && badge !== null && (
             <span className="dash-accord__badge">{badge}</span>
           )}
-          {summary && <span className="dash-accord__summary">{summary}</span>}
+          {headerPreview && <div className="dash-accord__preview">{headerPreview}</div>}
+          {summary && !headerPreview && <span className="dash-accord__summary">{summary}</span>}
         </div>
         <div className="dash-accord__hd-right">
           {headerExtra}
@@ -573,6 +582,13 @@ export default function Dashboard() {
   const activeConditions = healthData?.conditions ?? [];
   const profile         = deriveProfile(savedProfile);
 
+  // Archetype theme — for dashboard background tint
+  const archetypeTheme  = profile ? ARCHETYPE_THEMES[profile.archetype] : null;
+
+  // Insight type → emoji for collapsed preview row
+  const INSIGHT_EMOJI = { health: "🌿", safety: "⚠️", lifestyle: "🌱", career: "💼", love: "💛", personality: "🧠", profile: "🧬", pattern: "📊", recommendation: "⭐" };
+  const insightTypeList = [...new Set(insights.map(i => i.type))].slice(0, 7);
+
   // Health section summary shown in accordion header
   const healthSummary = healthData
     ? [
@@ -591,7 +607,12 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="dashboard dashboard--combined">
+    <div
+      className="dashboard dashboard--combined"
+      style={archetypeTheme ? {
+        background: `linear-gradient(185deg, ${archetypeTheme.primary}18 0%, ${archetypeTheme.primary}0a 55%, transparent 85%)`,
+      } : undefined}
+    >
 
       {/* ── Compact header ── */}
       <header className="dash-header">
@@ -623,28 +644,7 @@ export default function Dashboard() {
       {/* ── Accordion sections ── */}
       <div className="dash-accordions">
 
-        {/* ─ AI Insights ─ (open by default) */}
-        <Collapsible icon="🔬" title="AI Insights" badge={insights.length} defaultOpen={true}>
-          <div className="dash-insights__list">
-            {insights.map((ins, i) => (
-              <div key={i} className={`insight-card insight-card--${ins.type}`}>
-                <div className="insight-card__head">
-                  <span className="insight-card__icon">{ins.icon}</span>
-                  <span className="insight-card__title">{ins.title}</span>
-                  {ins.type === "health"       && <span className="insight-card__badge">Health</span>}
-                  {ins.type === "safety"       && <span className="insight-card__badge insight-card__badge--warn">Safety</span>}
-                  {ins.type === "lifestyle"    && <span className="insight-card__badge insight-card__badge--lifestyle">Lifestyle</span>}
-                  {ins.type === "career"       && <span className="insight-card__badge insight-card__badge--career">Career</span>}
-                  {ins.type === "love"         && <span className="insight-card__badge insight-card__badge--love">Love</span>}
-                  {ins.type === "personality"  && <span className="insight-card__badge insight-card__badge--personality">Personality</span>}
-                </div>
-                <p className="insight-card__text">{ins.text}</p>
-              </div>
-            ))}
-          </div>
-        </Collapsible>
-
-        {/* ─ Endocannabinoid Body Map ─ (open by default) */}
+        {/* ─ Endocannabinoid Body Map ─ FIRST, open by default — main focal area */}
         <Collapsible icon="🧍" title="Endocannabinoid Body Map" defaultOpen={true}>
           <div className="dash-body-section">
             <div className="dash-section-hint" style={{ marginBottom: 12, fontSize: ".83rem", color: "var(--c-text-muted)" }}>
@@ -666,6 +666,41 @@ export default function Dashboard() {
                 </span>
               ))}
             </div>
+          </div>
+        </Collapsible>
+
+        {/* ─ AI Insights ─ collapsed by default, emoji preview row always visible */}
+        <Collapsible
+          icon="🔬"
+          title="AI Insights"
+          badge={insights.length}
+          defaultOpen={false}
+          headerPreview={
+            <div className="insight-preview-row">
+              {insightTypeList.map(type => (
+                <span key={type} className="insight-preview-emoji" title={type}>
+                  {INSIGHT_EMOJI[type]}
+                </span>
+              ))}
+            </div>
+          }
+        >
+          <div className="dash-insights__list">
+            {insights.map((ins, i) => (
+              <div key={i} className={`insight-card insight-card--${ins.type}`}>
+                <div className="insight-card__head">
+                  <span className="insight-card__icon">{ins.icon}</span>
+                  <span className="insight-card__title">{ins.title}</span>
+                  {ins.type === "health"       && <span className="insight-card__badge">Health</span>}
+                  {ins.type === "safety"       && <span className="insight-card__badge insight-card__badge--warn">Safety</span>}
+                  {ins.type === "lifestyle"    && <span className="insight-card__badge insight-card__badge--lifestyle">Lifestyle</span>}
+                  {ins.type === "career"       && <span className="insight-card__badge insight-card__badge--career">Career</span>}
+                  {ins.type === "love"         && <span className="insight-card__badge insight-card__badge--love">Love</span>}
+                  {ins.type === "personality"  && <span className="insight-card__badge insight-card__badge--personality">Personality</span>}
+                </div>
+                <p className="insight-card__text">{ins.text}</p>
+              </div>
+            ))}
           </div>
         </Collapsible>
 
