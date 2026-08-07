@@ -56,14 +56,10 @@ export async function getVendorProducts(vendorId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function getAllProducts(region = "WNY") {
-  const q = query(
-    collection(db, "products"),
-    where("region", "==", region),
-    where("inStock", "==", true),
-    limit(100)
-  );
-  const snap = await getDocs(q);
+export async function getAllProducts(_region = "WNY") {
+  // No Firestore-level filter — fetch all products and let the caller filter.
+  // Avoids composite index requirements and missing-field issues on older docs.
+  const snap = await getDocs(query(collection(db, "products"), limit(200)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 

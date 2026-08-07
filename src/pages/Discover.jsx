@@ -39,7 +39,7 @@ function MatchBadge({ score }) {
 function VendorCard({ vendor, userProfile, products = [] }) {
   const score = profileMatchScore(userProfile, vendor);
   const tierLabel = { free: "", standard: "⭐ Standard", premium: "⭐⭐ Premium" }[vendor.tier] || "";
-  const inStock = products.filter((p) => p.inStock !== false);
+  const inStock = products; // show all — no inStock filter needed in consumer view
 
   return (
     <div className={`vendor-card vendor-card--${vendor.tier}`}>

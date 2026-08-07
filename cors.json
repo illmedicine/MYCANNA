@@ -1,0 +1,18 @@
+[
+  {
+    "origin": [
+      "https://mycanna-b2284.web.app",
+      "https://mycanna-b2284.firebaseapp.com",
+      "http://localhost:5173",
+      "http://localhost:5000"
+    ],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Length",
+      "x-goog-resumable"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

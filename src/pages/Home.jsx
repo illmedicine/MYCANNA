@@ -291,19 +291,39 @@ export default function Home() {
           <Link to="/investors" style={{ color: 'inherit', textDecoration: 'underline' }}>Investor Overview</Link>
           {' · '}A product of <a href="https://www.illyrobotic-ai.com" style={{ color: 'inherit', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Illy Robotic Instruments</a>
         </p>
-        <Link
-          to="/admin"
-          style={{
-            display: 'inline-block',
-            marginTop: '20px',
-            fontSize: '.65rem',
-            opacity: '.18',
-            color: 'inherit',
-            letterSpacing: '.06em',
-          }}
-        >
-          ⚙
-        </Link>
+        {user?.email === 'dwilson@illyrobotic-ai.com' ? (
+          <Link
+            to="/admin"
+            style={{
+              display: 'inline-block',
+              marginTop: '16px',
+              padding: '6px 16px',
+              fontSize: '.78rem',
+              background: 'rgba(16,185,129,0.15)',
+              border: '1px solid rgba(16,185,129,0.4)',
+              borderRadius: '6px',
+              color: '#10b981',
+              letterSpacing: '.04em',
+              textDecoration: 'none',
+            }}
+          >
+            ⚙ Admin Panel
+          </Link>
+        ) : (
+          <Link
+            to="/admin"
+            style={{
+              display: 'inline-block',
+              marginTop: '20px',
+              fontSize: '.65rem',
+              opacity: '.12',
+              color: 'inherit',
+              letterSpacing: '.06em',
+            }}
+          >
+            ⚙
+          </Link>
+        )}
       </footer>
     </main>
   );
