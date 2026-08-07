@@ -41,7 +41,7 @@ export default function Navbar() {
         <div className="navbar__actions">
           {user ? (
             <>
-              <Link to="/profile" className="btn btn--sm btn--outline navbar__profile-btn">
+              <Link to="/dashboard" className="btn btn--sm btn--outline navbar__profile-btn">
                 My Profile
               </Link>
               <button className="navbar__avatar-btn" onClick={() => setMenuOpen((o) => !o)} title="Account">
@@ -83,7 +83,7 @@ export default function Navbar() {
                   <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>🧬</span> My Dashboard
                   </Link>
-                  <Link to="/profile" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
+                  <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>👤</span> My Profile
                   </Link>
                   <Link to="/vendor/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>

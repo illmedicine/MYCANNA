@@ -67,7 +67,7 @@ export default function Discover() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getApprovedVendors("WNY")
+    getApprovedVendors()
       .then(setVendors)
       .catch(console.error)
       .finally(() => setLoading(false));

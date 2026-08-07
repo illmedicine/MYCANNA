@@ -10,7 +10,8 @@ export async function registerVendor(uid, data) {
   await setDoc(ref, {
     ...data,
     ownerId: uid,
-    status: "pending_verification", // admin flips to 'approved' in console
+    region: "WNY",
+    status: "pending_verification",
     tier: "free",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -23,12 +24,11 @@ export async function getVendor(vendorId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function getApprovedVendors(region = "WNY") {
+export async function getApprovedVendors() {
   const q = query(
     collection(db, "vendors"),
     where("status", "==", "approved"),
-    where("region", "==", region),
-    orderBy("tier", "desc"), // premium first
+    orderBy("createdAt", "desc"),
     limit(50)
   );
   const snap = await getDocs(q);
@@ -40,6 +40,7 @@ export async function addProduct(vendorId, productData) {
   const docRef = await addDoc(ref, {
     ...productData,
     vendorId,
+    region: "WNY",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -127,6 +128,7 @@ export async function getAllVendorsAdmin() {
 export async function approveVendor(vendorId) {
   await updateDoc(doc(db, "vendors", vendorId), {
     status: "approved",
+    region: "WNY",
     approvedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
