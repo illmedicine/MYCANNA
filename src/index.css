@@ -1725,7 +1725,11 @@ input { font-family: inherit; }
   background: rgba(74,222,128,.12); color: #16a34a;
   border-radius: 4px; padding: 2px 7px;
 }
-.insight-card__badge--warn { background: rgba(248,113,113,.12); color: #dc2626; }
+.insight-card__badge--warn        { background: rgba(248,113,113,.12); color: #dc2626; }
+.insight-card__badge--lifestyle   { background: rgba(52,211,153,.12);  color: #059669; }
+.insight-card__badge--career      { background: rgba(99,102,241,.12);  color: #4f46e5; }
+.insight-card__badge--love        { background: rgba(236,72,153,.12);  color: #db2777; }
+.insight-card__badge--personality { background: rgba(167,139,250,.12); color: #7c3aed; }
 .insight-card__text { font-size: .8rem; color: var(--c-text-muted); line-height: 1.55; }
 
 /* ─── Lower section ─── */
