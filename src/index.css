@@ -3355,7 +3355,11 @@ input { font-family: inherit; }
 .atype-card .format-card { background: rgba(255,255,255,.06); }
 .atype-card .format-card__label { color: #fff; }
 .atype-card .format-tip { color: rgba(255,255,255,.72); }
-.atype-card .avoid-item { color: rgba(255,255,255,.8); }
+.atype-card .avoid-item {
+  background: rgba(239,68,68,.15);
+  border-color: rgba(239,68,68,.28);
+  color: rgba(255,255,255,.92);
+}
 .atype-card .profile-disclaimer { color: rgba(255,255,255,.38); }
 
 /* Reset CSS vars inside the white slider snapshot box so BiSlider labels stay dark */
