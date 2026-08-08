@@ -3362,6 +3362,14 @@ input { font-family: inherit; }
 }
 .atype-card .profile-disclaimer { color: rgba(255,255,255,.38); }
 
+/* Insight badges — brighter for legibility on dark card backgrounds */
+.atype-card .insight-card__badge              { background: rgba(74,222,128,.2);   color: #4ade80; }
+.atype-card .insight-card__badge--warn        { background: rgba(248,113,113,.2);  color: #fca5a5; }
+.atype-card .insight-card__badge--lifestyle   { background: rgba(52,211,153,.2);   color: #6ee7b7; }
+.atype-card .insight-card__badge--career      { background: rgba(129,140,248,.2);  color: #a5b4fc; }
+.atype-card .insight-card__badge--love        { background: rgba(236,72,153,.2);   color: #f9a8d4; }
+.atype-card .insight-card__badge--personality { background: rgba(167,139,250,.2);  color: #c4b5fd; }
+
 /* Reset CSS vars inside the white slider snapshot box so BiSlider labels stay dark */
 .atype-card .snapshot-sliders {
   --c-text:       #1a2b1e;
