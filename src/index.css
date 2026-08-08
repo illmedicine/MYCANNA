@@ -3674,3 +3674,341 @@ input { font-family: inherit; }
   font-size: .9rem;
 }
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   PLUSH FELT THEME — Soft Stitch Aesthetic
+   Inspired by the Mycana commercial: yarn knot sliders, felt
+   craft boards, embroidered stitching, amigurumi warmth.
+   These rules are appended last and win in the cascade.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Warm cream felt palette */
+  --c-bg:            #f5ede0;
+  --c-bg-card:       #fdf9f3;
+  --c-bg-dark:       #1a2d1e;
+  --c-text:          #2b2d1e;
+  --c-text-muted:    #7c7860;
+  --c-border:        #c8bfab;
+  --c-primary:       #3d6b4a;
+  --c-primary-mid:   #4f8a5e;
+  --c-primary-light: #4ade80;
+  --c-gold:          #c9932a;
+  --c-gold-light:    #e8c547;
+  --c-demo-bg:       #ede8de;
+  /* Shorthand aliases */
+  --bg:         var(--c-bg);
+  --surface:    var(--c-bg-card);
+  --border:     var(--c-border);
+  --text-muted: var(--c-text-muted);
+
+  /* Updated shadows — warmer tones */
+  --shadow-sm: 0 2px 8px rgba(74,60,40,.09);
+  --shadow-md: 0 4px 20px rgba(74,60,40,.12);
+  --shadow-lg: 0 8px 40px rgba(74,60,40,.16);
+
+  /* Fonts */
+  --font:         'Nunito', system-ui, sans-serif;
+  --font-display: 'Fredoka One', 'Nunito', system-ui, sans-serif;
+
+  /* Stitch accent vars */
+  --c-stitch-green: rgba(90,144,104,.38);
+  --c-stitch-tan:   rgba(168,144,104,.30);
+}
+
+/* ─── Body — subtle fabric weave texture ────────────────────── */
+body {
+  font-family: var(--font);
+  background-color: var(--c-bg);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 11px,
+      rgba(155,135,105,.042) 11px, rgba(155,135,105,.042) 12px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 11px,
+      rgba(155,135,105,.042) 11px, rgba(155,135,105,.042) 12px
+    );
+}
+
+/* ─── Typography ────────────────────────────────────────────── */
+.section__title,
+.hero__headline,
+h1.hero__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: .01em;
+}
+
+/* ─── Navbar ─────────────────────────────────────────────────── */
+.navbar {
+  background: rgba(245,237,224,.95);
+  border-bottom-color: #d0c5b2;
+  backdrop-filter: blur(14px);
+}
+.navbar__name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: .025em;
+  color: #3d6b4a;
+}
+.navbar__leaf {
+  font-size: 1.5rem;
+}
+.navbar__link {
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+/* ─── Primary button — pillowy felt sewn button ─────────────── */
+.btn--primary {
+  background: linear-gradient(170deg, #5a9068 0%, #3d6b4a 100%);
+  border: 1.5px solid #2d5237;
+  border-radius: 14px;
+  box-shadow: 0 5px 0 #2a4d34, 0 7px 22px rgba(61,107,74,.22);
+  font-family: var(--font-display);
+  letter-spacing: .04em;
+  transition: transform .12s ease, box-shadow .12s ease, background .14s ease;
+}
+.btn--primary:hover:not(:disabled) {
+  background: linear-gradient(170deg, #66a07a 0%, #4a7c59 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #2a4d34, 0 10px 28px rgba(61,107,74,.28);
+}
+.btn--primary:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #2a4d34, 0 3px 10px rgba(61,107,74,.16);
+}
+.btn--sm.btn--primary {
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #2a4d34, 0 4px 14px rgba(61,107,74,.2);
+}
+.btn--sm.btn--primary:hover:not(:disabled) {
+  box-shadow: 0 5px 0 #2a4d34, 0 6px 20px rgba(61,107,74,.26);
+}
+.btn--sm.btn--primary:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #2a4d34, 0 2px 8px rgba(61,107,74,.14);
+}
+.btn--lg.btn--primary {
+  border-radius: 18px;
+  box-shadow: 0 6px 0 #2a4d34, 0 9px 28px rgba(61,107,74,.26);
+}
+.btn--lg.btn--primary:hover:not(:disabled) {
+  box-shadow: 0 8px 0 #2a4d34, 0 12px 36px rgba(61,107,74,.3);
+  transform: translateY(-3px);
+}
+
+/* ─── Outline button — soft felt border ─────────────────────── */
+.btn--outline {
+  border-color: #c8bfab;
+  border-radius: 12px;
+  font-weight: 700;
+  transition: border-color .14s, color .14s, box-shadow .14s;
+}
+.btn--outline:hover {
+  border-color: #5a9068;
+  box-shadow: 0 2px 12px rgba(90,144,104,.18);
+}
+
+/* ─── Insight cards — cream felt with stitch border ─────────── */
+.insight-card {
+  background: var(--c-bg-card) !important;
+  border: 2px solid #c8bfab !important;
+  border-radius: 18px !important;
+  outline: 1.5px dashed var(--c-stitch-tan);
+  outline-offset: -7px;
+  box-shadow: 0 3px 14px rgba(74,60,40,.08) !important;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.insight-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(74,60,40,.12) !important;
+}
+
+/* Dark archetype card overrides must not get the light stitch */
+.atype-card .insight-card,
+.atype-card .exp-card {
+  outline: none;
+}
+
+/* ─── Experience cards ───────────────────────────────────────── */
+.exp-card {
+  background: var(--c-bg-card) !important;
+  border: 2px solid #c8bfab !important;
+  border-radius: 18px !important;
+  outline: 1.5px dashed var(--c-stitch-tan);
+  outline-offset: -7px;
+  box-shadow: 0 3px 14px rgba(74,60,40,.08) !important;
+}
+
+/* ─── Vendor cards ───────────────────────────────────────────── */
+.vendor-card {
+  border-color: #c8bfab !important;
+  border-radius: 18px !important;
+  outline: 1.5px dashed var(--c-stitch-tan);
+  outline-offset: -6px;
+  transition: transform .18s, box-shadow .18s;
+}
+.vendor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(74,60,40,.12) !important;
+}
+
+/* ─── Home hero — warmer dark felt background ────────────────── */
+.hero {
+  background: linear-gradient(150deg, #162b1a 0%, #1a2d1e 55%, #1f3828 100%);
+}
+
+/* ─── BiSlider — yarn knot thumb ────────────────────────────── */
+.bi-slider__input {
+  height: 10px;
+  border-radius: 5px;
+}
+
+/* Track groove */
+.bi-slider__input::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(0,0,0,.12);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.1), inset 0 -1px 2px rgba(255,255,255,.35);
+}
+.bi-slider__input::-moz-range-track {
+  height: 10px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(0,0,0,.12);
+}
+
+/* Yarn knot thumb — thick white border + layered 3-D shadow */
+.bi-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--thumb-color, #4ade80);
+  border: 4px solid rgba(255,255,255,.88);
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.18),
+    inset 0 2px 5px rgba(255,255,255,.55),
+    inset 0 -2px 4px rgba(0,0,0,.18),
+    0 4px 12px rgba(0,0,0,.3);
+  cursor: grab;
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin-top: -10px;
+}
+.bi-slider__input::-webkit-slider-thumb:hover {
+  transform: scale(1.13);
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.2),
+    inset 0 2px 5px rgba(255,255,255,.55),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    0 6px 16px rgba(0,0,0,.32);
+}
+.bi-slider__input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+.bi-slider__input::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--thumb-color, #4ade80);
+  border: 3px solid rgba(255,255,255,.88);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.18), 0 4px 10px rgba(0,0,0,.25);
+  cursor: grab;
+}
+
+/* Yarn ball bubble (value indicator above thumb) */
+.bi-slider__bubble {
+  background: var(--thumb-color, #4ade80) !important;
+  border: 3px solid rgba(255,255,255,.88) !important;
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.15),
+    inset 0 2px 4px rgba(255,255,255,.45) !important;
+  font-weight: 800 !important;
+  font-size: .76rem !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 26px !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.35) !important;
+  transition: transform .12s ease !important;
+}
+
+/* ─── Archetype avatar — warm drop-shadow lift ───────────────── */
+.atype-card__avatar-col svg,
+.atype-card__avatar-col > div > svg {
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,.35)) saturate(0.9) brightness(1.05);
+}
+
+/* ─── Section eyebrow pills ─────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font);
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+/* ─── Dash accordion headers ─────────────────────────────────── */
+.dash-accord__title {
+  font-family: var(--font);
+  font-weight: 800;
+}
+
+/* ─── Form inputs — soft warm felt fields ────────────────────── */
+input[type="text"]:not([class*="slider"]),
+input[type="number"]:not([class*="slider"]),
+input[type="email"],
+textarea,
+select {
+  background: #fdf9f3 !important;
+  border-color: #c8bfab !important;
+  font-family: var(--font) !important;
+  transition: border-color .14s, box-shadow .14s !important;
+}
+input[type="text"]:focus:not([class*="slider"]),
+input[type="number"]:focus:not([class*="slider"]),
+textarea:focus,
+select:focus {
+  border-color: #5a9068 !important;
+  box-shadow: 0 0 0 3px rgba(90,144,104,.18) !important;
+  outline: none !important;
+}
+
+/* ─── Mobile nav panel ───────────────────────────────────────── */
+.nav-menu__panel {
+  background: #fdf9f3;
+  border-left: 1px solid #c8bfab;
+}
+.nav-menu__link {
+  font-family: var(--font);
+  font-weight: 700;
+}
+
+/* ─── Collapsible headers ────────────────────────────────────── */
+.collapsible__header,
+.dash-accord__hd {
+  font-family: var(--font);
+}
+
+/* ─── Snapshot slider box inside archetype card ─────────────── */
+/* Already overrides --c-text vars; ensure background stays white-cream */
+.atype-card .snapshot-sliders {
+  border-radius: 14px;
+  border: 1.5px solid rgba(255,255,255,.2);
+}
+
+/* ─── Privacy page link color adapts to warm theme ──────────── */
+.privacy-link {
+  color: #4f8a5e;
+}
+.privacy-link:hover {
+  color: #3d6b4a;
+}
+.privacy-hero {
+  background: linear-gradient(135deg, #1a2d1e 0%, #243d2b 50%, #1a2d1e 100%);
+}
+

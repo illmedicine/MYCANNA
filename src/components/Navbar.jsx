@@ -25,7 +25,7 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <Link to="/" className="navbar__brand">
-          <span className="navbar__leaf">🌿</span>
+          <span className="navbar__leaf">🧶</span>
           <span className="navbar__name">Mycana</span>
         </Link>
 

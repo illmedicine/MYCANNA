@@ -68,11 +68,11 @@ export const ENDO_REGIONS = [
 
 // ── Medieval scholar/anatomical figure SVG ─────────────────────────────────────
 function FigureSVG({ activeId }) {
-  const tunic = "#1e3a5f";
-  const tunicLight = "#264d7a";
-  const skin = "#fde8c8";
-  const belt = "#92400e";
-  const boot = "#451a03";
+  const tunic = "#3d6b4a";
+  const tunicLight = "#5a9068";
+  const skin = "#f5d5b0";
+  const belt = "#8b5c3e";
+  const boot = "#6b4226";
   return (
     <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
 
@@ -81,7 +81,7 @@ function FigureSVG({ activeId }) {
       <path d="M 64 174 L 136 174 L 132 258 L 68 258 Z" fill={tunic} />
       <path d="M 68 174 L 132 174 L 128 258 L 72 258 Z" fill={tunicLight} opacity="0.2" />
       {/* Left leg gap / robe fold */}
-      <path d="M 100 174 L 100 258 L 92 258 Z" fill="#0f2744" opacity="0.35" />
+      <path d="M 100 174 L 100 258 L 92 258 Z" fill="#2d4a3e" opacity="0.3" />
 
       {/* Left arm sleeve */}
       <path d="M 64 88 L 44 86 L 22 162 L 40 166 Z" fill={tunic} />
@@ -92,8 +92,8 @@ function FigureSVG({ activeId }) {
       <path d="M 60 82 L 140 82 L 136 174 L 64 174 Z" fill={tunic} />
       <path d="M 62 82 L 138 82 L 134 174 L 66 174 Z" fill={tunicLight} opacity="0.18" />
 
-      {/* Robe center seam */}
-      <line x1="100" y1="82" x2="100" y2="258" stroke="#0f2744" strokeWidth="1.5" opacity="0.4" />
+      {/* Robe center seam — running stitch */}
+      <line x1="100" y1="82" x2="100" y2="258" stroke="#2d4a3e" strokeWidth="1.5" opacity="0.35" strokeDasharray="5 4" />
 
       {/* Collar */}
       <path d="M 84 82 Q 100 76 116 82 L 112 92 Q 100 87 88 92 Z" fill={tunicLight} opacity="0.6" />
@@ -130,8 +130,8 @@ function FigureSVG({ activeId }) {
       <path d="M 103 37 Q 110 33 118 36" stroke="#374151" strokeWidth="1.8" fill="none" strokeLinecap="round" />
 
       {/* Eyes */}
-      <ellipse cx="90" cy="43" rx="5.5" ry="5" fill="#1e3a5f" />
-      <ellipse cx="110" cy="43" rx="5.5" ry="5" fill="#1e3a5f" />
+      <ellipse cx="90" cy="43" rx="5.5" ry="5" fill="#2d4a3e" />
+      <ellipse cx="110" cy="43" rx="5.5" ry="5" fill="#2d4a3e" />
       <circle cx="89" cy="42" r="2.2" fill="white" />
       <circle cx="109" cy="42" r="2.2" fill="white" />
       <circle cx="88.5" cy="41.5" r="0.9" fill="#4ade80" />
@@ -153,10 +153,24 @@ function FigureSVG({ activeId }) {
       {ENDO_REGIONS.map(r => (
         <circle
           key={r.id + "-glow"}
-          cx={r.hx} cy={r.hy} r={activeId === r.id ? 20 : 16}
+          cx={r.hx} cy={r.hy} r={activeId === r.id ? 22 : 17}
           fill={r.color}
-          opacity={activeId === r.id ? 0.22 : 0.12}
+          opacity={activeId === r.id ? 0.2 : 0.1}
           style={{ transition: "all 0.25s ease" }}
+        />
+      ))}
+
+      {/* ── Stitched outer ring (felt button border) ── */}
+      {ENDO_REGIONS.map(r => (
+        <circle
+          key={r.id + "-stitch"}
+          cx={r.hx} cy={r.hy} r={activeId === r.id ? 16 : 13}
+          fill="none"
+          stroke="white"
+          strokeWidth="1.5"
+          strokeDasharray="3 3"
+          opacity={activeId === r.id ? 0.7 : 0.4}
+          style={{ transition: "all 0.22s ease", pointerEvents: "none" }}
         />
       ))}
 
@@ -164,12 +178,12 @@ function FigureSVG({ activeId }) {
       {ENDO_REGIONS.map(r => (
         <circle
           key={r.id + "-dot"}
-          cx={r.hx} cy={r.hy} r={activeId === r.id ? 11 : 8}
+          cx={r.hx} cy={r.hy} r={activeId === r.id ? 10 : 8}
           fill={r.color}
-          opacity={activeId === r.id ? 1 : 0.85}
+          opacity={activeId === r.id ? 1 : 0.88}
           stroke="white"
-          strokeWidth={activeId === r.id ? 2 : 1.2}
-          style={{ transition: "all 0.2s ease", cursor: "pointer" }}
+          strokeWidth={activeId === r.id ? 2.5 : 2}
+          style={{ transition: "all 0.2s ease", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,.3))" }}
         />
       ))}
 
