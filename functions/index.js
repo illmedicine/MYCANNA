@@ -5,6 +5,8 @@ const GEMINI_KEY = defineSecret("GEMINI_API_KEY");
 
 // ── Allowed origins ──────────────────────────────────────────────────────────
 const ALLOWED = [
+  "https://mycana.info",
+  "https://www.mycana.info",
   "https://mycanna-b2284.web.app",
   "https://mycanna-b2284.firebaseapp.com",
   "http://localhost:5173",

@@ -598,7 +598,7 @@ export default function InvestorPitch() {
           Illy Robotic Instruments
         </a>
         <span>·</span>
-        <Link to="/" className="inv-footer__link">mycanna-b2284.web.app</Link>
+        <Link to="/" className="inv-footer__link">mycana.info</Link>
         <span>·</span>
         <span>For accredited investor review only · Not a public securities offering · Data projections are estimates</span>
       </footer>
