@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import MycanaLogo from "./Logo.jsx";
 
 const NAV_LINKS = [
   { to: "/discover",   label: "Discover",    icon: "🗺️" },
   { to: "/dashboard",  label: "Dashboard",   icon: "🧬", protected: true },
   { to: "/leaderboard",label: "Leaderboard", icon: "🏆" },
   { to: "/log",        label: "Log",         icon: "📝", protected: true },
+  { to: "/merch",      label: "Shop",        icon: "👕" },
 ];
 
 export default function Navbar() {
@@ -25,7 +27,7 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <Link to="/" className="navbar__brand">
-          <span className="navbar__leaf">🧶</span>
+          <MycanaLogo size={36} className="navbar__logo-badge" />
           <span className="navbar__name">Mycana</span>
         </Link>
 

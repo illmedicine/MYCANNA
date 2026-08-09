@@ -16,6 +16,7 @@ import InvestorPitch from "./pages/InvestorPitch.jsx";
 import AdminPortal from "./pages/AdminPortal.jsx";
 import VendorDashboard from "./pages/VendorDashboard.jsx";
 import Privacy from "./pages/Privacy.jsx";
+import Merch from "./pages/Merch.jsx";
 import LiveActivity from "./components/LiveActivity.jsx";
 
 function ProtectedRoute({ children }) {
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/log" element={<ProtectedRoute><LogExperience /></ProtectedRoute>} />
+        <Route path="/merch" element={<Merch />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
