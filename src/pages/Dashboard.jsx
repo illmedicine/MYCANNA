@@ -247,6 +247,8 @@ function ArchetypeCard({
     }
   };
 
+  const gender = healthData?.gender ?? "neutral";
+
   const darkVars = {
     "--c-text":       "#ffffff",
     "--c-text-muted": "rgba(255,255,255,0.58)",
