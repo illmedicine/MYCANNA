@@ -1,15 +1,13 @@
-// Interactive medieval-style body map — replaces the old BodyViz accordion.
-// Hotspot hover/click reveals endocannabinoid system insights in the card's info panel.
 import { useState } from "react";
 
+// ── Endocannabinoid system regions — positions tuned to plush figure ──────────
 export const ENDO_REGIONS = [
   {
     id: "brain",
     label: "Brain & CNS",
     emoji: "🧠",
     color: "#a78bfa",
-    // SVG hotspot position (viewBox 0 0 200 260)
-    hx: 100, hy: 40,
+    hx: 100, hy: 44,
     receptor: "CB1 dominant",
     effects: ["Mood regulation", "Anxiety control", "Memory", "Creativity"],
     insight: "CB1 receptors are densest in the brain — especially the prefrontal cortex and amygdala. THC's psychoactive effects stem from CB1 activation here. Linalool and CBD calm anxiety via 5-HT1A serotonin receptors — the same target as SSRIs.",
@@ -19,7 +17,7 @@ export const ENDO_REGIONS = [
     label: "Cardiovascular",
     emoji: "❤️",
     color: "#f87171",
-    hx: 82, hy: 112,
+    hx: 83, hy: 128,
     receptor: "CB1 & CB2",
     effects: ["Heart rate modulation", "Blood pressure", "Vascular tone"],
     insight: "CB1 and CB2 receptors regulate cardiovascular function. Low THC doses briefly raise heart rate via CB1. CBD relaxes blood vessels and reduces cardiac inflammation — beneficial for hypertension. Avoid high-THC products if you have cardiovascular conditions.",
@@ -29,7 +27,7 @@ export const ENDO_REGIONS = [
     label: "GI System",
     emoji: "🌿",
     color: "#34d399",
-    hx: 100, hy: 152,
+    hx: 100, hy: 162,
     receptor: "CB1 & CB2",
     effects: ["Nausea relief", "Gut motility", "Inflammation", "Appetite"],
     insight: "The enteric nervous system ('the second brain') is packed with CB1 receptors. Cannabis addresses Crohn's, IBS, and chemotherapy nausea via CB1-mediated gut regulation. CBD reduces intestinal inflammation through CB2 — tinctures and capsules allow precise enteric dosing.",
@@ -39,7 +37,7 @@ export const ENDO_REGIONS = [
     label: "Immune System",
     emoji: "🛡️",
     color: "#fbbf24",
-    hx: 122, hy: 106,
+    hx: 120, hy: 120,
     receptor: "CB2 dominant",
     effects: ["Anti-inflammatory", "Immune modulation", "Cytokine balance"],
     insight: "CB2 receptors are concentrated in immune tissues — lymph nodes, spleen, thymus. Beta-caryophyllene (BCP) is the only dietary terpene that directly activates CB2. CBD and THC reduce pro-inflammatory cytokines, directly benefiting autoimmune and inflammatory conditions.",
@@ -49,7 +47,7 @@ export const ENDO_REGIONS = [
     label: "Spine & Pain",
     emoji: "⚡",
     color: "#fb923c",
-    hx: 140, hy: 140,
+    hx: 142, hy: 155,
     receptor: "CB1 & CB2",
     effects: ["Pain gate control", "Neuropathic relief", "Spasm reduction"],
     insight: "CB1 receptors in the dorsal horn of the spinal cord act as pain 'gates.' Myrcene enhances CB1 binding affinity, amplifying analgesic effects significantly. Indica-dominant strains with myrcene are the most effective for chronic and neuropathic pain relief.",
@@ -59,145 +57,285 @@ export const ENDO_REGIONS = [
     label: "Muscles & Joints",
     emoji: "💪",
     color: "#6ee7b7",
-    hx: 28, hy: 155,
+    hx: 36, hy: 162,
     receptor: "CB2 dominant",
     effects: ["Inflammation reduction", "Recovery", "Soreness relief", "Flexibility"],
     insight: "CB2 receptors in muscle and joint tissue modulate local inflammation without psychoactive effects. Topical CBD reaches these receptors directly. Research shows topical cannabinoids reduce exercise-induced inflammation markers by up to 38% — ideal for post-workout recovery.",
   },
 ];
 
-// ── Medieval scholar/anatomical figure SVG ─────────────────────────────────────
-function FigureSVG({ activeId }) {
-  const tunic = "#3d6b4a";
-  const tunicLight = "#5a9068";
-  const skin = "#f5d5b0";
-  const belt = "#8b5c3e";
-  const boot = "#6b4226";
+// ── Knitted SVG patterns ──────────────────────────────────────────────────────
+const SVG_DEFS = (
+  <defs>
+    {/* Cream felt knit texture */}
+    <pattern id="knit-cream" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0,3 C1.3,1.2 2.7,4.8 4,3 C5.3,1.2 6.7,4.8 8,3"
+        fill="none" stroke="rgba(110,70,20,.07)" strokeWidth=".85"/>
+      <path d="M0,6 C1.3,4.2 2.7,7.8 4,6 C5.3,4.2 6.7,7.8 8,6"
+        fill="none" stroke="rgba(110,70,20,.07)" strokeWidth=".85"/>
+    </pattern>
+    {/* Green felt knit texture */}
+    <pattern id="knit-green" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0,3 C1.3,1.2 2.7,4.8 4,3 C5.3,1.2 6.7,4.8 8,3"
+        fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".85"/>
+      <path d="M0,6 C1.3,4.2 2.7,7.8 4,6 C5.3,4.2 6.7,7.8 8,6"
+        fill="none" stroke="rgba(255,255,255,.08)" strokeWidth=".85"/>
+    </pattern>
+    {/* Drop shadow filter */}
+    <filter id="plush-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,.25)"/>
+    </filter>
+    <filter id="btn-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,.35)"/>
+    </filter>
+  </defs>
+);
+
+// ── Plush knitted figure SVG ──────────────────────────────────────────────────
+function PlushFigureSVG({ activeId, gender = "neutral" }) {
+  const isFemale  = gender === "female";
+  const isMale    = gender === "male";
+
+  // Palette
+  const felt        = "#e8d5b8";   // warm cream felt body
+  const feltShade   = "#d4bfa0";   // slightly deeper felt for depth
+  const clothing    = "#3d6b4a";   // brand green clothing
+  const stitchLine  = "#9b7d5a";   // warm brown thread
+  const hairDark    = "#3a2810";   // dark hair
+  const eyeDark     = "#1e140a";   // dark button eyes
+  const blush       = "rgba(220,110,80,.2)";
+
+  // Gender shape offsets
+  const sW  = isMale   ? 7  : 0;   // extra shoulder width for male
+  const hW  = isFemale ? 7  : 0;   // extra hip width for female
+  const wIn = isFemale ? 6  : 0;   // waist inward for female
+
+  // Torso paths
+  const torsoPath = isFemale
+    ? `M ${72 - sW} 100 C ${58} 120 ${60 + wIn} 142 ${66} 160 C ${62 + hW} 178 ${68 + hW} 198 ${78 + hW} 204
+       L ${122 - hW} 204 C ${132 - hW} 198 ${138 - hW} 178 ${134} 160 C ${140 - wIn} 142 ${142} 120 ${128 + sW} 100 Z`
+    : `M ${68 - sW} 100 C ${55} 120 ${57} 145 ${65} 168 C ${68} 188 ${76} 204 ${82} 208
+       L ${118} 208 C ${124} 204 ${132} 188 ${135} 168 C ${143} 145 ${145} 120 ${132 + sW} 100 Z`;
+
   return (
-    <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
+    <svg
+      viewBox="0 0 200 282"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: "100%", height: "100%", display: "block" }}
+    >
+      {SVG_DEFS}
 
-      {/* ── Scholars robe / tunic body ── */}
-      {/* Robe skirt */}
-      <path d="M 64 174 L 136 174 L 132 258 L 68 258 Z" fill={tunic} />
-      <path d="M 68 174 L 132 174 L 128 258 L 72 258 Z" fill={tunicLight} opacity="0.2" />
-      {/* Left leg gap / robe fold */}
-      <path d="M 100 174 L 100 258 L 92 258 Z" fill="#2d4a3e" opacity="0.3" />
+      {/* ── Left arm ─────────────────────────────────── */}
+      <ellipse cx={47} cy={148} rx={15} ry={44}
+        fill={clothing} transform="rotate(-12 47 148)" filter="url(#plush-shadow)"/>
+      <ellipse cx={47} cy={148} rx={15} ry={44}
+        fill="url(#knit-green)" transform="rotate(-12 47 148)"/>
+      {/* Left arm shoulder seam */}
+      <line x1="56" y1="105" x2="42" y2="120"
+        stroke={stitchLine} strokeWidth="1" strokeDasharray="3 2.5" opacity=".55"/>
+      {/* Left hand */}
+      <ellipse cx={36} cy={190} rx={13} ry={11} fill={felt} filter="url(#plush-shadow)"/>
+      <ellipse cx={36} cy={190} rx={13} ry={11} fill="url(#knit-cream)"/>
+      <ellipse cx={36} cy={190} rx={13} ry={11}
+        fill="none" stroke={stitchLine} strokeWidth=".9" strokeDasharray="2.5 2" opacity=".4"/>
 
-      {/* Left arm sleeve */}
-      <path d="M 64 88 L 44 86 L 22 162 L 40 166 Z" fill={tunic} />
-      {/* Right arm sleeve */}
-      <path d="M 136 88 L 156 86 L 178 162 L 160 166 Z" fill={tunic} />
+      {/* ── Right arm ────────────────────────────────── */}
+      <ellipse cx={153} cy={148} rx={15} ry={44}
+        fill={clothing} transform="rotate(12 153 148)" filter="url(#plush-shadow)"/>
+      <ellipse cx={153} cy={148} rx={15} ry={44}
+        fill="url(#knit-green)" transform="rotate(12 153 148)"/>
+      {/* Right arm shoulder seam */}
+      <line x1="144" y1="105" x2="158" y2="120"
+        stroke={stitchLine} strokeWidth="1" strokeDasharray="3 2.5" opacity=".55"/>
+      {/* Right hand */}
+      <ellipse cx={164} cy={190} rx={13} ry={11} fill={felt} filter="url(#plush-shadow)"/>
+      <ellipse cx={164} cy={190} rx={13} ry={11} fill="url(#knit-cream)"/>
+      <ellipse cx={164} cy={190} rx={13} ry={11}
+        fill="none" stroke={stitchLine} strokeWidth=".9" strokeDasharray="2.5 2" opacity=".4"/>
 
-      {/* Tunic upper body */}
-      <path d="M 60 82 L 140 82 L 136 174 L 64 174 Z" fill={tunic} />
-      <path d="M 62 82 L 138 82 L 134 174 L 66 174 Z" fill={tunicLight} opacity="0.18" />
+      {/* ── Torso ─────────────────────────────────────── */}
+      <path d={torsoPath} fill={clothing} filter="url(#plush-shadow)"/>
+      <path d={torsoPath} fill="url(#knit-green)"/>
+      {/* Center seam */}
+      <line x1="100" y1="100" x2="100" y2="206"
+        stroke={stitchLine} strokeWidth="1.1" strokeDasharray="4 3" opacity=".45"/>
+      {/* Female chest */}
+      {isFemale && (
+        <>
+          <ellipse cx="86"  cy="122" rx="12" ry="10" fill={clothing}/>
+          <ellipse cx="114" cy="122" rx="12" ry="10" fill={clothing}/>
+          <ellipse cx="86"  cy="121" rx="12" ry="10" fill="rgba(255,255,255,.06)"/>
+          <ellipse cx="114" cy="121" rx="12" ry="10" fill="rgba(255,255,255,.06)"/>
+        </>
+      )}
 
-      {/* Robe center seam — running stitch */}
-      <line x1="100" y1="82" x2="100" y2="258" stroke="#2d4a3e" strokeWidth="1.5" opacity="0.35" strokeDasharray="5 4" />
+      {/* ── Left leg ─────────────────────────────────── */}
+      <rect x="74" y="202" width="24" height="58" rx="12"
+        fill={clothing} filter="url(#plush-shadow)"/>
+      <rect x="74" y="202" width="24" height="58" rx="12" fill="url(#knit-green)"/>
+      <line x1="86" y1="204" x2="86" y2="258"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".35"/>
 
-      {/* Collar */}
-      <path d="M 84 82 Q 100 76 116 82 L 112 92 Q 100 87 88 92 Z" fill={tunicLight} opacity="0.6" />
-      <path d="M 88 82 Q 100 76 112 82 L 110 90 Q 100 85 90 90 Z" fill="white" opacity="0.1" />
+      {/* ── Right leg ────────────────────────────────── */}
+      <rect x="102" y="202" width="24" height="58" rx="12"
+        fill={clothing} filter="url(#plush-shadow)"/>
+      <rect x="102" y="202" width="24" height="58" rx="12" fill="url(#knit-green)"/>
+      <line x1="114" y1="204" x2="114" y2="258"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".35"/>
 
-      {/* Belt */}
-      <rect x="58" y="168" width="84" height="10" rx="5" fill={belt} />
-      <rect x="84" y="165" width="32" height="16" rx="3" fill="#78350f" />
-      <ellipse cx="100" cy="173" rx="9" ry="7" fill={belt} />
-      <ellipse cx="100" cy="173" rx="5.5" ry="4.5" fill="#ca8a04" opacity="0.8" />
+      {/* ── Feet ─────────────────────────────────────── */}
+      <ellipse cx="86"  cy="262" rx="17" ry="11" fill={felt} filter="url(#plush-shadow)"/>
+      <ellipse cx="86"  cy="262" rx="17" ry="11" fill="url(#knit-cream)"/>
+      <ellipse cx="86"  cy="262" rx="17" ry="11"
+        fill="none" stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".35"/>
+      <ellipse cx="114" cy="262" rx="17" ry="11" fill={felt} filter="url(#plush-shadow)"/>
+      <ellipse cx="114" cy="262" rx="17" ry="11" fill="url(#knit-cream)"/>
+      <ellipse cx="114" cy="262" rx="17" ry="11"
+        fill="none" stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".35"/>
 
-      {/* Rune/symbol on tunic (medieval touch) */}
-      <text x="100" y="138" fontSize="18" textAnchor="middle" fill="white" opacity="0.08" fontFamily="serif">⚕</text>
+      {/* Ankle seam */}
+      <line x1="70"  y1="257" x2="104" y2="257"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".4"/>
+      <line x1="98"  y1="257" x2="132" y2="257"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="3 2.5" opacity=".4"/>
 
-      {/* ── Hands ── */}
-      <circle cx="22" cy="166" r="11" fill={skin} />
-      <circle cx="178" cy="166" r="11" fill={skin} />
+      {/* ── Neck ─────────────────────────────────────── */}
+      <rect x="88" y="80" width="24" height="24" rx="12" fill={felt}/>
+      <rect x="88" y="80" width="24" height="24" rx="12" fill="url(#knit-cream)"/>
+      <line x1="89" y1="82" x2="111" y2="82"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="2.5 2" opacity=".4"/>
+      <line x1="89" y1="102" x2="111" y2="102"
+        stroke={stitchLine} strokeWidth=".9" strokeDasharray="2.5 2" opacity=".4"/>
 
-      {/* ── Neck ── */}
-      <rect x="88" y="67" width="24" height="17" rx="4" fill={skin} />
+      {/* ── Head ─────────────────────────────────────── */}
+      <circle cx="100" cy="46" r="42" fill={felt} filter="url(#plush-shadow)"/>
+      <circle cx="100" cy="46" r="42" fill="url(#knit-cream)"/>
+      {/* Head outline seam */}
+      <circle cx="100" cy="46" r="42"
+        fill="none" stroke={stitchLine} strokeWidth="1.3" strokeDasharray="5 4" opacity=".28"/>
 
-      {/* ── Head ── */}
-      <circle cx="100" cy="44" r="28" fill={skin} />
+      {/* ── Hair ─────────────────────────────────────── */}
+      {isMale && (
+        <>
+          <path d="M 60 38 Q 62 6 100 4 Q 138 6 140 38 Q 132 18 100 17 Q 68 18 60 38Z"
+            fill={hairDark}/>
+          {/* Sideburns */}
+          <path d="M 60 42 C 57 50 56 62 58 72" fill="none"
+            stroke={hairDark} strokeWidth="5" strokeLinecap="round"/>
+          <path d="M 140 42 C 143 50 144 62 142 72" fill="none"
+            stroke={hairDark} strokeWidth="5" strokeLinecap="round"/>
+        </>
+      )}
+      {isFemale && (
+        <>
+          <path d="M 60 38 Q 62 6 100 4 Q 138 6 140 38 Q 132 18 100 17 Q 68 18 60 38Z"
+            fill={hairDark}/>
+          {/* Long flowing sides */}
+          <path d="M 62 42 C 56 60 54 78 56 94" fill="none"
+            stroke={hairDark} strokeWidth="8" strokeLinecap="round"/>
+          <path d="M 138 42 C 144 60 146 78 144 94" fill="none"
+            stroke={hairDark} strokeWidth="8" strokeLinecap="round"/>
+          {/* Hair sheen */}
+          <path d="M 63 42 C 58 58 56 76 58 92" fill="none"
+            stroke="rgba(255,255,255,.08)" strokeWidth="3" strokeLinecap="round"/>
+          <path d="M 137 42 C 142 58 144 76 142 92" fill="none"
+            stroke="rgba(255,255,255,.08)" strokeWidth="3" strokeLinecap="round"/>
+        </>
+      )}
+      {!isMale && !isFemale && (
+        /* Neutral — soft rounded top */
+        <path d="M 65 28 Q 68 6 100 5 Q 132 6 135 28 Q 128 16 100 16 Q 72 16 65 28Z"
+          fill={feltShade} opacity=".6"/>
+      )}
 
-      {/* Hair */}
-      <path d="M 72 38 Q 72 14 100 12 Q 128 14 128 38 Q 124 28 100 26 Q 76 28 72 38Z" fill="#44403c" />
+      {/* ── Face ─────────────────────────────────────── */}
+      {/* Blush cheeks */}
+      <circle cx="80"  cy="57" r="10" fill={blush}/>
+      <circle cx="120" cy="57" r="10" fill={blush}/>
 
-      {/* Cheeks */}
-      <circle cx="82" cy="50" r="8" fill="#fca5a5" opacity="0.25" />
-      <circle cx="118" cy="50" r="8" fill="#fca5a5" opacity="0.25" />
+      {/* Left eye — button */}
+      <circle cx="88" cy="42" r="7.5" fill={eyeDark}/>
+      <circle cx="88" cy="42" r="7.5" fill="none"
+        stroke={stitchLine} strokeWidth="1.2" opacity=".5"/>
+      {/* Button thread cross */}
+      <line x1="86" y1="40" x2="90" y2="44" stroke={stitchLine} strokeWidth=".7" opacity=".45"/>
+      <line x1="90" y1="40" x2="86" y2="44" stroke={stitchLine} strokeWidth=".7" opacity=".45"/>
+      <circle cx="90" cy="40" r="3" fill="white" opacity=".9"/>
+      <circle cx="86" cy="44" r="1.2" fill="white" opacity=".4"/>
 
-      {/* Eyebrows */}
-      <path d="M 82 36 Q 90 33 97 37" stroke="#374151" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-      <path d="M 103 37 Q 110 33 118 36" stroke="#374151" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      {/* Right eye — button */}
+      <circle cx="112" cy="42" r="7.5" fill={eyeDark}/>
+      <circle cx="112" cy="42" r="7.5" fill="none"
+        stroke={stitchLine} strokeWidth="1.2" opacity=".5"/>
+      <line x1="110" y1="40" x2="114" y2="44" stroke={stitchLine} strokeWidth=".7" opacity=".45"/>
+      <line x1="114" y1="40" x2="110" y2="44" stroke={stitchLine} strokeWidth=".7" opacity=".45"/>
+      <circle cx="114" cy="40" r="3" fill="white" opacity=".9"/>
+      <circle cx="110" cy="44" r="1.2" fill="white" opacity=".4"/>
 
-      {/* Eyes */}
-      <ellipse cx="90" cy="43" rx="5.5" ry="5" fill="#2d4a3e" />
-      <ellipse cx="110" cy="43" rx="5.5" ry="5" fill="#2d4a3e" />
-      <circle cx="89" cy="42" r="2.2" fill="white" />
-      <circle cx="109" cy="42" r="2.2" fill="white" />
-      <circle cx="88.5" cy="41.5" r="0.9" fill="#4ade80" />
-      <circle cx="108.5" cy="41.5" r="0.9" fill="#4ade80" />
+      {/* Nose — small felt bump */}
+      <ellipse cx="100" cy="54" rx="3.5" ry="2.5" fill={feltShade} opacity=".8"/>
 
-      {/* Nose */}
-      <ellipse cx="100" cy="51" rx="3" ry="2.2" fill="#d4a574" />
+      {/* Mouth — stitched smile */}
+      <path d="M 88 63 Q 100 75 112 63"
+        fill="none" stroke={stitchLine} strokeWidth="2.2"
+        strokeLinecap="round" strokeDasharray="3.5 2.2"/>
 
-      {/* Calm smile */}
-      <path d="M 92 59 Q 100 65 108 59" stroke="#7c4b30" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-
-      {/* ── Boots ── */}
-      <ellipse cx="80" cy="257" rx="16" ry="6" fill={boot} />
-      <ellipse cx="120" cy="257" rx="16" ry="6" fill={boot} />
-      <rect x="66" y="246" width="28" height="14" rx="4" fill={boot} />
-      <rect x="106" y="246" width="28" height="14" rx="4" fill={boot} />
-
-      {/* ── Hotspot glow rings (background pulses behind dots) ── */}
+      {/* ── Hotspot glows ────────────────────────────── */}
       {ENDO_REGIONS.map(r => (
         <circle
           key={r.id + "-glow"}
-          cx={r.hx} cy={r.hy} r={activeId === r.id ? 22 : 17}
+          cx={r.hx} cy={r.hy}
+          r={activeId === r.id ? 22 : 16}
           fill={r.color}
-          opacity={activeId === r.id ? 0.2 : 0.1}
+          opacity={activeId === r.id ? 0.28 : 0.14}
           style={{ transition: "all 0.25s ease" }}
         />
       ))}
 
-      {/* ── Stitched outer ring (felt button border) ── */}
+      {/* ── Stitched button border ────────────────────── */}
       {ENDO_REGIONS.map(r => (
         <circle
-          key={r.id + "-stitch"}
-          cx={r.hx} cy={r.hy} r={activeId === r.id ? 16 : 13}
+          key={r.id + "-ring"}
+          cx={r.hx} cy={r.hy}
+          r={activeId === r.id ? 15 : 12}
           fill="none"
-          stroke="white"
+          stroke="rgba(255,255,255,.7)"
           strokeWidth="1.5"
-          strokeDasharray="3 3"
-          opacity={activeId === r.id ? 0.7 : 0.4}
+          strokeDasharray="3 2.5"
+          opacity={activeId === r.id ? 0.8 : 0.5}
           style={{ transition: "all 0.22s ease", pointerEvents: "none" }}
         />
       ))}
 
-      {/* ── Hotspot dots ── */}
+      {/* ── Felt hotspot dots ─────────────────────────── */}
       {ENDO_REGIONS.map(r => (
         <circle
           key={r.id + "-dot"}
-          cx={r.hx} cy={r.hy} r={activeId === r.id ? 10 : 8}
+          cx={r.hx} cy={r.hy}
+          r={activeId === r.id ? 10.5 : 8.5}
           fill={r.color}
-          opacity={activeId === r.id ? 1 : 0.88}
           stroke="white"
           strokeWidth={activeId === r.id ? 2.5 : 2}
-          style={{ transition: "all 0.2s ease", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,.3))" }}
+          style={{
+            transition: "all 0.2s ease",
+            cursor: "pointer",
+            filter: "drop-shadow(0 2px 5px rgba(0,0,0,.4))",
+          }}
         />
       ))}
 
-      {/* ── System labels (tiny, visible when active) ── */}
+      {/* ── Active system label ───────────────────────── */}
       {ENDO_REGIONS.map(r => {
         if (activeId !== r.id) return null;
-        const labelY = r.hy > 130 ? r.hy - 16 : r.hy + 22;
+        const labelY = r.hy > 145 ? r.hy - 20 : r.hy + 26;
+        const labelX = r.hx < 60 ? r.hx + 14 : r.hx > 140 ? r.hx - 14 : r.hx;
         return (
           <text
-            key={r.id + "-label"}
-            x={r.hx} y={labelY}
+            key={r.id + "-lbl"}
+            x={labelX} y={labelY}
             fontSize="7.5" textAnchor="middle"
-            fill="white" fontWeight="700"
-            style={{ pointerEvents: "none", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+            fill="white" fontWeight="800"
+            style={{ pointerEvents: "none", textShadow: "0 1px 3px rgba(0,0,0,.8)" }}
           >
             {r.label}
           </text>
@@ -207,39 +345,29 @@ function FigureSVG({ activeId }) {
   );
 }
 
-// ── Public component ────────────────────────────────────────────────────────────
-export default function MedievalBodyMap({ onRegionChange, activeId }) {
-  const handlePointer = (id) => {
-    onRegionChange(id === activeId ? null : id);
-  };
-
+// ── Public component ──────────────────────────────────────────────────────────
+export default function MedievalBodyMap({ onRegionChange, activeId, gender = "neutral" }) {
   return (
-    <div
-      className="mdbm"
-      style={{ position: "relative", width: "100%", height: "100%" }}
-    >
-      {/* Invisible hit-targets on top of the figure */}
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <FigureSVG activeId={activeId} />
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <PlushFigureSVG activeId={activeId} gender={gender} />
 
-        {/* Transparent clickable / hoverable circles that sit over each hotspot */}
-        <svg
-          viewBox="0 0 200 260"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
-        >
-          {ENDO_REGIONS.map(r => (
-            <circle
-              key={r.id}
-              cx={r.hx} cy={r.hy} r="22"
-              fill="transparent"
-              style={{ cursor: "pointer" }}
-              onMouseEnter={() => onRegionChange(r.id)}
-              onMouseLeave={() => onRegionChange(null)}
-              onClick={() => handlePointer(r.id)}
-            />
-          ))}
-        </svg>
-      </div>
+      {/* Transparent hit-targets over each hotspot */}
+      <svg
+        viewBox="0 0 200 282"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
+      >
+        {ENDO_REGIONS.map(r => (
+          <circle
+            key={r.id}
+            cx={r.hx} cy={r.hy} r="22"
+            fill="transparent"
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => onRegionChange(r.id)}
+            onMouseLeave={() => onRegionChange(null)}
+            onClick={() => onRegionChange(r.id === activeId ? null : r.id)}
+          />
+        ))}
+      </svg>
     </div>
   );
 }

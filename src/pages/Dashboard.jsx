@@ -257,22 +257,15 @@ function ArchetypeCard({
 
   return (
     <div className="atype-card" style={{ background: theme.gradient }}>
-      {/* ── Dual avatar hero ── */}
-      <div className="atype-card__hero atype-card__hero--dual">
-        <div className="atype-card__avatar-item">
-          <div className="atype-card__avatar-wrap"><Avatar /></div>
-          <div className="atype-card__avatar-label">{character}</div>
+      {/* ── Body map hero ── */}
+      <div className="atype-card__hero atype-card__hero--body">
+        <div className="atype-card__avatar-wrap atype-card__avatar-wrap--body">
+          <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} gender={gender} />
         </div>
-        <div className="atype-card__avatar-divider" />
-        <div className="atype-card__avatar-item">
-          <div className="atype-card__avatar-wrap atype-card__avatar-wrap--body">
-            <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} />
-          </div>
-          <div className="atype-card__avatar-label">
-            {bodyRegion
-              ? <span style={{ color: ENDO_REGIONS.find(r => r.id === bodyRegion)?.color }}>● Tap a system</span>
-              : "Tap a system"}
-          </div>
+        <div className="atype-card__avatar-label">
+          {bodyRegion
+            ? <span style={{ color: ENDO_REGIONS.find(r => r.id === bodyRegion)?.color }}>● Tap a system</span>
+            : "Tap a system"}
         </div>
       </div>
 
