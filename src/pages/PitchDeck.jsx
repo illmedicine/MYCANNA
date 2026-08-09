@@ -132,16 +132,21 @@ function PlushFigure({ x = 0, y = 0, scale = 1, style = {}, className = "" }) {
   );
 }
 
-// ── Variant plush figure (customizable skin, bald, beard, muscular) ──────────
-function PlushFigureVariant({ x = 0, y = 0, scale = 1, style = {}, skinTone = "light", bald = false, beard = false, muscular = false }) {
+// ── Variant plush figure (skin, bald, beardStyle, glasses, cap, slim, logoPatch) ─
+function PlushFigureVariant({
+  x = 0, y = 0, scale = 1, style = {},
+  skinTone = "light", bald = false,
+  beardStyle = "none", glasses = false, cap = "none",
+  slim = false, logoPatch = null,
+}) {
   const felt = skinTone === "dark" ? "#8B5430" : "#e8d5b8";
   const clothing = "#3d6b4a";
   const stitch = "#9b7d5a";
   const hair = "#3a2810";
-  const armRx = muscular ? 18 : 15;
-  const armRy = muscular ? 47 : 44;
-  const torsoPath = muscular
-    ? "M62 100 C48 120 50 145 58 168 C62 188 72 204 80 208 L120 208 C128 204 138 188 142 168 C150 145 152 120 138 100 Z"
+  const armRx = slim ? 12 : 15;
+  const armRy = slim ? 40 : 44;
+  const torsoPath = slim
+    ? "M72 100 C62 120 64 145 70 168 C73 188 80 204 85 208 L115 208 C120 204 127 188 130 168 C136 145 138 120 128 100 Z"
     : "M68 100 C55 120 57 145 65 168 C68 188 76 204 82 208 L118 208 C124 204 132 188 135 168 C143 145 145 120 132 100 Z";
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`} style={style}>
@@ -178,8 +183,18 @@ function PlushFigureVariant({ x = 0, y = 0, scale = 1, style = {}, skinTone = "l
       <circle cx="100" cy="46" r="42" fill={felt} filter="url(#pd-shadow)"/>
       <circle cx="100" cy="46" r="42" fill="url(#pd-cream)"/>
       <circle cx="100" cy="46" r="42" fill="none" stroke={stitch} strokeWidth="1.3" strokeDasharray="5 4" opacity=".28"/>
-      {/* Hair (omitted if bald) */}
-      {!bald && (
+      {/* Backwards baseball cap */}
+      {cap === "backwards" && (
+        <>
+          <path d="M60 34 Q62 4 100 3 Q138 4 140 34 Q128 16 100 15 Q72 16 60 34Z" fill="#1A3D2B"/>
+          <path d="M140 27 Q162 22 168 32 Q165 42 142 38 Z" fill="#1A3D2B" opacity="0.88"/>
+          <circle cx="100" cy="5" r="4.5" fill="#C9A84B"/>
+          <path d="M62 32 Q100 40 138 32" fill="none" stroke="#C9A84B" strokeWidth="2" opacity="0.55"/>
+          <rect x="138" y="34" width="14" height="5" rx="2" fill="#C9A84B" opacity="0.55"/>
+        </>
+      )}
+      {/* Hair (skip if bald or capped) */}
+      {!bald && cap === "none" && (
         <path d="M60 38 Q62 6 100 4 Q138 6 140 38 Q132 18 100 17 Q68 18 60 38Z" fill={hair}/>
       )}
       {/* Eyes */}
@@ -187,10 +202,20 @@ function PlushFigureVariant({ x = 0, y = 0, scale = 1, style = {}, skinTone = "l
       <circle cx="113" cy="45" r="4.5" fill={hair}/>
       <circle cx="88.5" cy="43.5" r="1.4" fill="rgba(255,255,255,.55)"/>
       <circle cx="114.5" cy="43.5" r="1.4" fill="rgba(255,255,255,.55)"/>
+      {/* Glasses */}
+      {glasses && (
+        <>
+          <circle cx="87" cy="45" r="10" fill="rgba(200,230,255,0.07)" stroke={hair} strokeWidth="2.5" opacity="0.75"/>
+          <circle cx="113" cy="45" r="10" fill="rgba(200,230,255,0.07)" stroke={hair} strokeWidth="2.5" opacity="0.75"/>
+          <line x1="97" y1="45" x2="103" y2="45" stroke={hair} strokeWidth="2" opacity="0.75"/>
+          <line x1="77" y1="46" x2="63" y2="49" stroke={hair} strokeWidth="2" opacity="0.75"/>
+          <line x1="123" y1="46" x2="137" y2="49" stroke={hair} strokeWidth="2" opacity="0.75"/>
+        </>
+      )}
       {/* Smile */}
       <path d="M90 58 Q100 66 110 58" fill="none" stroke={stitch} strokeWidth="2" strokeLinecap="round"/>
-      {/* Beard */}
-      {beard && (
+      {/* Normal beard */}
+      {beardStyle === "normal" && (
         <>
           <path d="M84 56 Q80 70 83 80 Q91 88 100 88 Q109 88 117 80 Q120 70 116 56 Q110 62 100 63 Q90 62 84 56Z"
             fill={hair} opacity="0.88"/>
@@ -198,9 +223,29 @@ function PlushFigureVariant({ x = 0, y = 0, scale = 1, style = {}, skinTone = "l
             fill={hair} opacity="0.9"/>
         </>
       )}
+      {/* ZZ Top — very long flowing beard past the waist */}
+      {beardStyle === "zztop" && (
+        <>
+          <path d="M81 56 Q77 82 79 115 Q82 155 85 195 Q90 228 100 248 Q110 228 115 195 Q118 155 121 115 Q123 82 119 56 Q112 63 100 64 Q88 63 81 56Z"
+            fill={hair} opacity="0.93"/>
+          <line x1="93" y1="90" x2="90" y2="220" stroke="rgba(255,255,255,.09)" strokeWidth="2.5"/>
+          <line x1="100" y1="90" x2="100" y2="235" stroke="rgba(255,255,255,.07)" strokeWidth="2.5"/>
+          <line x1="107" y1="90" x2="110" y2="220" stroke="rgba(255,255,255,.09)" strokeWidth="2.5"/>
+          <path d="M86 53 Q93 47 100 48 Q107 47 114 53 Q108 57 100 56 Q92 57 86 53Z"
+            fill={hair} opacity="0.95"/>
+        </>
+      )}
       {/* Cheeks */}
       <ellipse cx="78" cy="57" rx="9" ry="6" fill="rgba(220,110,80,.18)"/>
       <ellipse cx="122" cy="57" rx="9" ry="6" fill="rgba(220,110,80,.18)"/>
+      {/* Chest logo patch — rendered last so always visible over beard */}
+      {logoPatch && (
+        <>
+          <ellipse cx="100" cy="136" rx="24" ry="15" fill={logoPatch}/>
+          <ellipse cx="100" cy="136" rx="24" ry="15" fill="none" stroke="#C9A84B" strokeWidth="1.8" strokeDasharray="3 2.5" opacity="0.7"/>
+          <text x="100" y="143" textAnchor="middle" fontSize="15" fill="#2E6B47" fontWeight="bold" fontFamily="Georgia,serif">M</text>
+        </>
+      )}
     </g>
   );
 }
@@ -603,16 +648,25 @@ function ScenePlatform() {
         </g>
       </g>
 
-      {/* Founding Team — John Girdlestone (left, beard) + DeMarkus Wilson (right, brown/bald/muscular) */}
+      {/* Founding Team — John (ZZ Top beard, cap, glasses) + DeMarkus (dark/bald/slim) */}
       <g style={{ animation: "felt-float 5s 0.8s ease-in-out infinite" }}>
-        <rect x={151} y={13} width={122} height={13} rx={6} fill="#C9A84B" opacity={0.85}/>
-        <text x={212} y={22.5} textAnchor="middle" fontSize="5.5" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.7">FOUNDING TEAM</text>
-        <PlushFigureVariant x={152} y={24} scale={0.28} beard={true}/>
-        <text x={180} y={106} textAnchor="middle" fontSize="5.5" fill="#1A3D2B" fontWeight="bold">John G.</text>
-        <text x={180} y={113} textAnchor="middle" fontSize="4.5" fill="#8B6914">Sales Founder</text>
-        <PlushFigureVariant x={222} y={24} scale={0.28} skinTone="dark" bald={true} muscular={true}/>
-        <text x={250} y={106} textAnchor="middle" fontSize="5.5" fill="#1A3D2B" fontWeight="bold">DeMarkus W.</text>
-        <text x={250} y={113} textAnchor="middle" fontSize="4.5" fill="#8B6914">Tech Founder</text>
+        {/* Felt backing card */}
+        <rect x={140} y={5} width={148} height={136} rx={10} fill="#F5EDD8" opacity={0.92} filter="url(#pd-shadow)"/>
+        <rect x={140} y={5} width={148} height={136} rx={10} fill="url(#pd-bg)" filter="url(#pd-felt)"/>
+        <rect x={145} y={10} width={138} height={126} rx={7} fill="none" stroke="#C9A84B" strokeWidth="1.5" strokeDasharray="5 3" opacity={0.45}/>
+        {/* Label pill */}
+        <rect x={162} y={7} width={104} height={13} rx={6} fill="#C9A84B" opacity={0.92}/>
+        <text x={214} y={17} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.8">FOUNDING TEAM</text>
+        {/* John Girdlestone — backwards cap, glasses, ZZ Top beard, cream logo patch */}
+        <PlushFigureVariant x={143} y={18} scale={0.38}
+          cap="backwards" glasses={true} beardStyle="zztop" logoPatch="#F5EDD8"/>
+        <text x={181} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">John G.</text>
+        <text x={181} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Visionary Founder</text>
+        {/* DeMarkus Wilson — brown skin, bald, slim build, cream logo patch */}
+        <PlushFigureVariant x={215} y={18} scale={0.38}
+          skinTone="dark" bald={true} slim={true} logoPatch="#F5EDD8"/>
+        <text x={253} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">DeMarkus W.</text>
+        <text x={253} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Architect Founder</text>
       </g>
 
       {/* User network — right side */}
