@@ -183,7 +183,12 @@ function ProductCard({ product, score, vendorName, onClick }) {
         )}
 
         {vendorName && (
-          <div className="disc-product-card__vendor">📍 {vendorName}</div>
+          <div className="disc-product-card__vendor">
+            📍 {vendorName}
+            {product._vendor?.tier === "premium" && (
+              <span className="disc-premium-badge">★ Premium</span>
+            )}
+          </div>
         )}
       </div>
     </button>
@@ -403,6 +408,11 @@ export default function Discover() {
       p._vendor?.city?.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
+      // Premium vendors always surface first within the same tier
+      const aPremium = a._vendor?.tier === "premium" ? 1 : 0;
+      const bPremium = b._vendor?.tier === "premium" ? 1 : 0;
+      if (bPremium !== aPremium) return bPremium - aPremium;
+
       if (sort === "match") {
         const sa = a._score ?? -1, sb = b._score ?? -1;
         return sb - sa;

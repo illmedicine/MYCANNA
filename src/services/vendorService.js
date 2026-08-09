@@ -120,6 +120,28 @@ export async function getAllVendorsAdmin() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+export async function updateVendorTier(vendorId, tier) {
+  await updateDoc(doc(db, "vendors", vendorId), {
+    tier,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function bulkAddProducts(vendorId, productList) {
+  const results = [];
+  for (const productData of productList) {
+    const docRef = await addDoc(collection(db, "products"), {
+      ...productData,
+      vendorId,
+      region: "WNY",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    results.push(docRef.id);
+  }
+  return results;
+}
+
 export async function approveVendor(vendorId) {
   await updateDoc(doc(db, "vendors", vendorId), {
     status: "approved",

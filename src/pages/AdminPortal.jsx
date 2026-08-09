@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getAllVendorsAdmin, approveVendor, rejectVendor,
+  updateVendorTier, bulkAddProducts,
 } from "../services/vendorService.js";
+import { NY_FARM_CO_PRODUCTS } from "../data/nyFarmCoProducts.js";
 import { logActivity } from "../services/activityService.js";
 import "./AdminPortal.css";
 
@@ -87,11 +89,102 @@ function PinGate({ onUnlock }) {
   );
 }
 
+/* ── Bulk Import Panel ─────────────────────────────────────────────── */
+function BulkImportPanel({ vendors }) {
+  const [vendorId, setVendorId] = useState("");
+  const [products, setProducts] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [done, setDone] = useState(null);
+  const [error, setError] = useState("");
+
+  const approved = vendors.filter(v => v.status === "approved");
+
+  const loadPreset = () => {
+    setProducts(NY_FARM_CO_PRODUCTS);
+    setDone(null);
+    setError("");
+  };
+
+  const handleImport = async () => {
+    if (!vendorId) { setError("Select a vendor first."); return; }
+    if (!products?.length) { setError("No products loaded."); return; }
+    setImporting(true);
+    setError("");
+    try {
+      const ids = await bulkAddProducts(vendorId, products);
+      setDone(ids.length);
+    } catch (e) {
+      setError(e.message || "Import failed.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <div className="adm-import">
+      <h3 className="adm-import__title">📦 Bulk Product Import</h3>
+      <p className="adm-import__hint">Import a product catalog for an approved vendor. All products are marked featured and tagged for recommendation matching.</p>
+
+      <div className="adm-import__row">
+        <div className="adm-import__field">
+          <label>Target Vendor</label>
+          <select value={vendorId} onChange={e => setVendorId(e.target.value)}>
+            <option value="">— select vendor —</option>
+            {approved.map(v => (
+              <option key={v.id} value={v.id}>{v.storeName}</option>
+            ))}
+          </select>
+        </div>
+        <div className="adm-import__field">
+          <label>Product Catalog</label>
+          <button className="btn btn--outline adm-import__preset-btn" onClick={loadPreset}>
+            Load NY Farm Co Menu (144 products)
+          </button>
+        </div>
+      </div>
+
+      {products && (
+        <div className="adm-import__preview">
+          <div className="adm-import__preview-stats">
+            {["Flower","Vape","Pre-Roll","Edible"].map(cat => {
+              const n = products.filter(p => p.category === cat).length;
+              return <span key={cat}><strong>{n}</strong> {cat}</span>;
+            })}
+            <span><strong>{products.length}</strong> total</span>
+          </div>
+          <div className="adm-import__preview-list">
+            {products.slice(0, 8).map((p, i) => (
+              <div key={i} className="adm-import__preview-item">
+                <span className="adm-import__preview-cat">{p.category}</span>
+                <span>{p.name}</span>
+                {p.thcPct && <span className="adm-import__preview-thc">THC {p.thcPct}%</span>}
+              </div>
+            ))}
+            {products.length > 8 && <div className="adm-import__preview-more">…and {products.length - 8} more</div>}
+          </div>
+        </div>
+      )}
+
+      {error && <p className="adm-import__error">{error}</p>}
+      {done !== null && <p className="adm-import__success">✓ {done} products imported successfully!</p>}
+
+      <button
+        className="btn btn--primary adm-import__submit"
+        onClick={handleImport}
+        disabled={importing || !products || !vendorId}
+      >
+        {importing ? `Importing…` : `Import ${products?.length ?? 0} Products`}
+      </button>
+    </div>
+  );
+}
+
 /* ── Vendor Row ────────────────────────────────────────────────────── */
-function VendorRow({ vendor, onApprove, onReject, expanded, onToggle }) {
+function VendorRow({ vendor, onApprove, onReject, onTierChange, expanded, onToggle }) {
   const [rejectNote, setRejectNote] = useState("");
   const [showReject, setShowReject]  = useState(false);
   const [busy, setBusy] = useState(false);
+  const [tierBusy, setTierBusy] = useState(false);
 
   const handleApprove = async () => {
     setBusy(true);
@@ -104,6 +197,12 @@ function VendorRow({ vendor, onApprove, onReject, expanded, onToggle }) {
     await onReject(vendor.id, rejectNote);
     setBusy(false);
     setShowReject(false);
+  };
+
+  const handleTier = async (tier) => {
+    setTierBusy(true);
+    await onTierChange(vendor.id, tier);
+    setTierBusy(false);
   };
 
   const ts = vendor.createdAt?.toDate?.()?.toLocaleDateString() ?? "—";
@@ -173,10 +272,31 @@ function VendorRow({ vendor, onApprove, onReject, expanded, onToggle }) {
           )}
 
           {vendor.status === "approved" && (
-            <div className="adm-vendor__actions">
-              <button className="btn adm-btn--reject" onClick={() => { setShowReject(true); }} disabled={busy}>
-                Revoke Approval
-              </button>
+            <div className="adm-vendor__actions" style={{ flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: ".78rem", color: "var(--c-text-muted)", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase" }}>Subscription Tier:</span>
+                {["free", "standard", "premium"].map(t => (
+                  <button
+                    key={t}
+                    className="btn btn--sm"
+                    style={{
+                      background: vendor.tier === t ? TIER_COLORS[t] : "transparent",
+                      color: vendor.tier === t ? "#fff" : TIER_COLORS[t],
+                      border: `1px solid ${TIER_COLORS[t]}`,
+                      opacity: tierBusy ? 0.5 : 1,
+                    }}
+                    disabled={tierBusy || vendor.tier === t}
+                    onClick={() => handleTier(t)}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn adm-btn--reject" onClick={() => setShowReject(true)} disabled={busy}>
+                  Revoke Approval
+                </button>
+              </div>
               {showReject && (
                 <div className="adm-reject-form">
                   <textarea
@@ -236,12 +356,18 @@ export default function AdminPortal() {
     await load();
   };
 
+  const handleTierChange = async (id, tier) => {
+    await updateVendorTier(id, tier);
+    await load();
+  };
+
   const byStatus = (s) => vendors.filter((v) => v.status === s);
   const tabs = [
     { id: "pending",  label: `Pending (${byStatus("pending_verification").length})` },
     { id: "approved", label: `Approved (${byStatus("approved").length})` },
     { id: "rejected", label: `Rejected (${byStatus("rejected").length})` },
     { id: "all",      label: `All (${vendors.length})` },
+    { id: "import",   label: `Import Products` },
   ];
   const statusMap = { pending: "pending_verification", approved: "approved", rejected: "rejected", all: null };
   const shown = tab === "all" ? vendors : vendors.filter((v) => v.status === statusMap[tab]);
@@ -294,24 +420,31 @@ export default function AdminPortal() {
           ))}
         </div>
 
-        {loading && <div className="app-loading" style={{ minHeight: 200 }}>🌿</div>}
+        {tab === "import" ? (
+          <BulkImportPanel vendors={vendors} />
+        ) : (
+          <>
+            {loading && <div className="app-loading" style={{ minHeight: 200 }}>🌿</div>}
 
-        {!loading && shown.length === 0 && (
-          <div className="adm-empty">No applications in this category.</div>
+            {!loading && shown.length === 0 && (
+              <div className="adm-empty">No applications in this category.</div>
+            )}
+
+            <div className="adm-vendor-list">
+              {shown.map((v) => (
+                <VendorRow
+                  key={v.id}
+                  vendor={v}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onTierChange={handleTierChange}
+                  expanded={expanded === v.id}
+                  onToggle={() => setExpanded(expanded === v.id ? null : v.id)}
+                />
+              ))}
+            </div>
+          </>
         )}
-
-        <div className="adm-vendor-list">
-          {shown.map((v) => (
-            <VendorRow
-              key={v.id}
-              vendor={v}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              expanded={expanded === v.id}
-              onToggle={() => setExpanded(expanded === v.id ? null : v.id)}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );

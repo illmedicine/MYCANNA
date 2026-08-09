@@ -274,3 +274,109 @@
   .adm-vendor__date   { display: none; }
   .adm-tabs           { flex-wrap: wrap; }
 }
+
+/* ── Bulk Import Panel ── */
+.adm-import {
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: 28px 24px;
+  max-width: 720px;
+}
+.adm-import__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0 0 6px;
+}
+.adm-import__hint {
+  font-size: .82rem;
+  color: var(--c-text-muted);
+  margin: 0 0 20px;
+}
+.adm-import__row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.adm-import__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+}
+.adm-import__field label {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--c-text-muted);
+}
+.adm-import__field select {
+  padding: 9px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: .9rem;
+}
+.adm-import__preset-btn {
+  align-self: flex-start;
+}
+.adm-import__preview {
+  background: rgba(61,107,74,.08);
+  border: 1px solid rgba(61,107,74,.2);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.adm-import__preview-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  font-size: .82rem;
+  color: var(--c-text-muted);
+}
+.adm-import__preview-stats strong {
+  color: #3d6b4a;
+}
+.adm-import__preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.adm-import__preview-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: .82rem;
+  color: var(--c-text);
+}
+.adm-import__preview-cat {
+  font-size: .7rem;
+  font-weight: 700;
+  background: rgba(61,107,74,.15);
+  color: #3d6b4a;
+  border-radius: 4px;
+  padding: 2px 6px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  min-width: 60px;
+  text-align: center;
+}
+.adm-import__preview-thc {
+  font-size: .72rem;
+  color: var(--c-text-muted);
+  margin-left: auto;
+}
+.adm-import__preview-more {
+  font-size: .78rem;
+  color: var(--c-text-muted);
+  margin-top: 4px;
+}
+.adm-import__error   { color: #ef4444; font-size: .85rem; margin: 0 0 12px; }
+.adm-import__success { color: #10b981; font-size: .85rem; margin: 0 0 12px; }
+.adm-import__submit  { margin-top: 4px; }

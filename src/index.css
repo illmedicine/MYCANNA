@@ -926,7 +926,16 @@ input { font-family: inherit; }
 .disc-product-card__vendor {
   font-size: .72rem; color: var(--c-text-muted);
   margin-top: auto; padding-top: 6px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 6px;
+}
+.disc-premium-badge {
+  font-size: .65rem; font-weight: 700;
+  background: linear-gradient(135deg, #d4a843, #f0c96e);
+  color: #7a5200;
+  border-radius: 4px;
+  padding: 1px 5px;
+  letter-spacing: .04em;
+  flex-shrink: 0;
 }
 
 /* ─── Product Detail Modal ───────────────────────────────────────── */
@@ -4044,4 +4053,169 @@ select:focus {
 }
 .navbar__brand:active .navbar__logo-badge {
   transform: rotate(-2deg) scale(0.96);
+}
+
+/* ─── Profile snapshot edit mode ───────────────────────────────── */
+.profile-section__hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.profile-section__hd .profile-section__title {
+  margin-bottom: 0;
+}
+.profile-edit-btns {
+  display: flex;
+  gap: .5rem;
+}
+.profile-edit-hint {
+  font-size: .78rem;
+  color: rgba(255,255,255,.55);
+  text-align: center;
+  margin-top: .5rem;
+  font-style: italic;
+}
+
+/* ─── Profile snapshot saved badge ─────────────────────────────── */
+.profile-saved-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #4ade80;
+  letter-spacing: .04em;
+  animation: fadeInOut 1.8s ease forwards;
+}
+@keyframes fadeInOut {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── Admin nav button ──────────────────────────────────────── */
+.navbar__admin-btn {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: .3rem .75rem;
+  border-radius: 8px;
+  background: rgba(16,185,129,.15);
+  border: 1px solid rgba(16,185,129,.4);
+  color: #10b981;
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.navbar__admin-btn:hover {
+  background: rgba(16,185,129,.28);
+  border-color: rgba(16,185,129,.7);
+}
+.nav-menu__link--admin {
+  color: #10b981 !important;
+}
+
+/* ─── Condition-based cannabis insights (body map panel) ─────── */
+.cond-insights {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.cond-insights__hd {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid rgba(245,158,11,.3);
+}
+.cond-insights__icon {
+  font-size: 1rem;
+}
+.cond-insights__title {
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #f59e0b;
+}
+.cond-card {
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.25);
+  border-radius: 14px;
+  padding: .85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+.cond-card__name {
+  font-size: .95rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+.cond-card__how {
+  font-size: .8rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,.8);
+  margin: 0;
+}
+.cond-card__grid {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.cond-card__row {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.cond-card__lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: rgba(255,255,255,.45);
+}
+.cond-card__val {
+  font-size: .8rem;
+  color: rgba(255,255,255,.88);
+  line-height: 1.4;
+}
+.cond-card__val--warn {
+  color: #fca5a5;
+}
+.cond-card__methods {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.cond-method {
+  font-size: .78rem;
+  color: rgba(255,255,255,.82);
+  background: rgba(255,255,255,.07);
+  border-radius: 8px;
+  padding: .22rem .6rem;
+  display: inline-block;
+}
+.cond-card__row--warn .cond-card__lbl {
+  color: rgba(252,165,165,.6);
+}
+.cond-card__strain {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-top: .4rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.cond-card__strain-lbl {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.38);
+  white-space: nowrap;
+}
+.cond-card__strain-val {
+  font-size: .78rem;
+  color: #6ee7b7;
+  font-style: italic;
 }
