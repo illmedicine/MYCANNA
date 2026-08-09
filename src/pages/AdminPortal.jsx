@@ -23,7 +23,8 @@ const STATUS_LABELS = {
   rejected:  "Rejected",
 };
 
-const TIER_LABELS = { free: "Free", standard: "Standard $49", premium: "Premium $149" };
+const TIER_LABELS  = { free: "Free", standard: "Standard $49", premium: "Premium $149" };
+const TIER_COLORS  = { free: "#64748b", standard: "#d4a843", premium: "#6d28d9" };
 
 /* ── PIN Gate ──────────────────────────────────────────────────────── */
 function PinGate({ onUnlock }) {
