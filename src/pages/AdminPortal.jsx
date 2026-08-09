@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getAllVendorsAdmin, approveVendor, rejectVendor,
-  updateVendorTier, bulkAddProducts,
+  updateVendorTier, bulkAddProducts, addVendorCoOwner, ensureVendorSlug,
 } from "../services/vendorService.js";
 import { NY_FARM_CO_PRODUCTS } from "../data/nyFarmCoProducts.js";
+import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
 import { logActivity } from "../services/activityService.js";
+import { auth } from "../firebase.js";
+import { getVendorProducts, updateProduct, uploadProductImage } from "../services/vendorService.js";
 import "./AdminPortal.css";
 
 // Change this PIN in .env.local → VITE_ADMIN_PIN=xxxx
@@ -85,6 +88,76 @@ function PinGate({ onUnlock }) {
           ))}
         </div>
         {hint && <p className="adm-pin-hint">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ── Pitch Deck Panel ──────────────────────────────────────────────── */
+const PITCH_CARDS = [
+  {
+    id: "consumer",
+    icon: "🧬",
+    name: "Cannabis Consumer",
+    desc: "Assessment, AI insights, experience logging, prestige system. Shareable with end consumers.",
+  },
+  {
+    id: "storefront",
+    icon: "🏪",
+    name: "Licensed Dispensary",
+    desc: "Vendor dashboard, public catalog, and built-in wholesale ordering. For retail store operators.",
+  },
+  {
+    id: "supplier",
+    icon: "📦",
+    name: "Wholesale Supplier",
+    desc: "Live catalog, real-time order intake, Leaflink replacement pitch. For cultivators like NY Farm Co.",
+  },
+  {
+    id: "platform",
+    icon: "⚙️",
+    name: "Platform / Admin",
+    desc: "Vendor lifecycle, subscription tiers, scientific data layer. For investors and internal use.",
+  },
+];
+
+function PitchDeckPanel() {
+  const [copied, setCopied] = useState(null);
+  const base = typeof window !== "undefined" ? window.location.origin : "https://mycana.info";
+  const copy = (id) => {
+    navigator.clipboard.writeText(`${base}/pitch/${id}`).then(() => {
+      setCopied(id);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  };
+  return (
+    <div style={{ padding: "0 0 24px" }}>
+      <p style={{ fontSize: 13, color: "#7A9A7A", margin: "12px 0 4px" }}>
+        Each deck is a standalone shareable page. Send the link to the appropriate audience — no login required.
+      </p>
+      <div className="adm-pitch-grid">
+        {PITCH_CARDS.map((c) => (
+          <div key={c.id} className="adm-pitch-card">
+            <div className="adm-pitch-card__icon">{c.icon}</div>
+            <div className="adm-pitch-card__name">{c.name}</div>
+            <div className="adm-pitch-card__desc">{c.desc}</div>
+            <div className="adm-pitch-card__url">{base}/pitch/{c.id}</div>
+            <div className="adm-pitch-card__actions">
+              <button
+                className="adm-pitch-card__btn adm-pitch-card__btn--open"
+                onClick={() => window.open(`/pitch/${c.id}`, "_blank")}
+              >
+                Preview ↗
+              </button>
+              <button
+                className={`adm-pitch-card__btn ${copied === c.id ? "adm-pitch-card__btn--copied" : "adm-pitch-card__btn--copy"}`}
+                onClick={() => copy(c.id)}
+              >
+                {copied === c.id ? "Copied!" : "Copy Link"}
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -181,11 +254,31 @@ function BulkImportPanel({ vendors }) {
 }
 
 /* ── Vendor Row ────────────────────────────────────────────────────── */
-function VendorRow({ vendor, onApprove, onReject, onTierChange, expanded, onToggle }) {
-  const [rejectNote, setRejectNote] = useState("");
-  const [showReject, setShowReject]  = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [tierBusy, setTierBusy] = useState(false);
+function VendorRow({ vendor, onApprove, onReject, onTierChange, onCoOwnerAdded, expanded, onToggle }) {
+  const [rejectNote,  setRejectNote]  = useState("");
+  const [showReject,  setShowReject]  = useState(false);
+  const [busy,        setBusy]        = useState(false);
+  const [tierBusy,    setTierBusy]    = useState(false);
+  const [coEmail,     setCoEmail]     = useState("");
+  const [coOwners,    setCoOwners]    = useState(vendor.ownerEmails ?? []);
+  const [coSaving,    setCoSaving]    = useState(false);
+  const [coSaved,     setCoSaved]     = useState(false);
+
+  const handleAddCoOwner = async () => {
+    const email = coEmail.trim().toLowerCase();
+    if (!email || coOwners.includes(email)) return;
+    setCoSaving(true);
+    try {
+      await addVendorCoOwner(vendor.id, email);
+      const updated = [...coOwners, email];
+      setCoOwners(updated);
+      setCoEmail("");
+      setCoSaved(true);
+      onCoOwnerAdded?.(vendor.id, updated);
+      setTimeout(() => setCoSaved(false), 2000);
+    } catch (e) { console.error(e); }
+    finally { setCoSaving(false); }
+  };
 
   const handleApprove = async () => {
     setBusy(true);
@@ -230,7 +323,7 @@ function VendorRow({ vendor, onApprove, onReject, onTierChange, expanded, onTogg
           <div className="adm-detail-grid">
             <div><strong>Address</strong><span>{vendor.address}, {vendor.city}, NY {vendor.zip}</span></div>
             <div><strong>Phone</strong><span>{vendor.phone || "—"}</span></div>
-            <div><strong>Email / Owner</strong><span>{vendor.ownerId}</span></div>
+            <div><strong>Owner UID</strong><span>{vendor.ownerId}</span></div>
             <div><strong>License</strong><span>{vendor.licenseNumber} · {vendor.licenseType?.replace("_", " ")}</span></div>
             <div><strong>Website</strong><span>{vendor.website || "—"}</span></div>
             <div><strong>Region</strong><span>{vendor.region}</span></div>
@@ -240,6 +333,33 @@ function VendorRow({ vendor, onApprove, onReject, onTierChange, expanded, onTogg
             {vendor.rejectionReason && (
               <div className="adm-detail-grid__full"><strong>Rejection Reason</strong><span>{vendor.rejectionReason}</span></div>
             )}
+          </div>
+
+          {/* Co-owner management */}
+          <div className="adm-coowner">
+            <div className="adm-coowner__hd">👥 Store Managers / Co-Owners</div>
+            <div className="adm-coowner__list">
+              {coOwners.length === 0
+                ? <span className="adm-coowner__empty">No co-owners set</span>
+                : coOwners.map(e => <span key={e} className="adm-coowner__tag">{e}</span>)
+              }
+            </div>
+            <div className="adm-coowner__add">
+              <input
+                type="email"
+                placeholder="Add co-owner email…"
+                value={coEmail}
+                onChange={e => setCoEmail(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleAddCoOwner()}
+              />
+              <button
+                className="btn btn--sm adm-btn--approve"
+                onClick={handleAddCoOwner}
+                disabled={coSaving || !coEmail.trim()}
+              >
+                {coSaving ? "…" : coSaved ? "✓ Added" : "Add"}
+              </button>
+            </div>
           </div>
 
           {vendor.status === "pending_verification" && (
@@ -333,7 +453,16 @@ export default function AdminPortal() {
 
   const load = async () => {
     setLoading(true);
-    try { setVendors(await getAllVendorsAdmin()); }
+    try {
+      const all = await getAllVendorsAdmin();
+      setVendors(all);
+      // Silently backfill catalogSlug for any vendor missing it
+      all.forEach(v => {
+        if (!v.catalogSlug && v.storeName) {
+          ensureVendorSlug(v.id, v.storeName).catch(console.error);
+        }
+      });
+    }
     catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -369,6 +498,7 @@ export default function AdminPortal() {
     { id: "rejected", label: `Rejected (${byStatus("rejected").length})` },
     { id: "all",      label: `All (${vendors.length})` },
     { id: "import",   label: `Import Products` },
+    { id: "pitches",  label: `🎯 Pitch Decks` },
   ];
   const statusMap = { pending: "pending_verification", approved: "approved", rejected: "rejected", all: null };
   const shown = tab === "all" ? vendors : vendors.filter((v) => v.status === statusMap[tab]);
@@ -421,7 +551,9 @@ export default function AdminPortal() {
           ))}
         </div>
 
-        {tab === "import" ? (
+        {tab === "pitches" ? (
+          <PitchDeckPanel />
+        ) : tab === "import" ? (
           <BulkImportPanel vendors={vendors} />
         ) : (
           <>
@@ -439,6 +571,7 @@ export default function AdminPortal() {
                   onApprove={handleApprove}
                   onReject={handleReject}
                   onTierChange={handleTierChange}
+                  onCoOwnerAdded={(id, emails) => setVendors(vs => vs.map(x => x.id === id ? { ...x, ownerEmails: emails } : x))}
                   expanded={expanded === v.id}
                   onToggle={() => setExpanded(expanded === v.id ? null : v.id)}
                 />

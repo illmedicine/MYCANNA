@@ -141,7 +141,7 @@
 .merch-card__visual--cream { background: linear-gradient(145deg, #f0ece0 0%, #e8e2d0 100%); }
 .merch-card__visual--gold  { background: linear-gradient(145deg, #c8903a 0%, #a06820 100%); }
 
-/* Stitch frame inside visual */
+/* Stitch frame inside visual (suppressed for real photo cards) */
 .merch-card__visual::after {
   content: "";
   position: absolute;
@@ -151,6 +151,30 @@
   pointer-events: none;
 }
 .merch-card__visual--cream::after { border-color: rgba(0,0,0,.12); }
+
+/* Real photo variant */
+.merch-card__visual--photo {
+  background: #f0ece0;
+  padding: 0;
+}
+.merch-card__visual--photo::before,
+.merch-card__visual--photo::after { display: none; }
+.merch-product-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Cart thumb for photo products */
+.merch-drawer__item-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--c-bg);
+}
 
 .merch-card__tag {
   position: absolute;

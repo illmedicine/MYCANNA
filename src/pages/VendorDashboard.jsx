@@ -1,12 +1,25 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import QRCode from "qrcode";
 import { useAuth } from "../auth/AuthContext.jsx";
 import {
-  getVendorByOwner, getVendorProducts, addProduct,
+  getVendorsByUser, getVendorProducts, addProduct,
   updateProduct, deleteProduct, uploadProductImage, updateVendorProfile,
+  ensureVendorSlug, toVendorSlug,
 } from "../services/vendorService.js";
+import {
+  updateCatalogSettings, uploadCatalogBanner,
+  getVendorOrders, updateOrderStatus,
+} from "../services/catalogService.js";
 import { logActivity } from "../services/activityService.js";
+import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
 import "./VendorDashboard.css";
+
+function productImage(product) {
+  if (product.imageUrl) return product.imageUrl;
+  const file = STRAIN_IMAGE_MAP[product.name];
+  return file ? `/product-images/${file}` : null;
+}
 
 const PRODUCT_LIMIT = { free: 10, standard: Infinity, premium: Infinity };
 
@@ -302,23 +315,32 @@ function ProductModal({ vendorId, product, onSave, onClose }) {
 /* ── Product Card ───────────────────────────────────────────────── */
 function ProductCard({ product, onEdit, onDelete }) {
   const [confirming, setConfirming] = useState(false);
+  const imgSrc = productImage(product);
 
   return (
     <div className="vd-product-card">
-      {product.imageUrl
-        ? <img src={product.imageUrl} alt={product.name} className="vd-product-card__img" />
-        : <div className="vd-product-card__no-img">🌿</div>
-      }
-      {product.featured && <span className="vd-product-card__featured">⭐ Featured</span>}
-      {!product.inStock && <span className="vd-product-card__oos">Out of Stock</span>}
+      <div className="vd-product-card__media">
+        {imgSrc
+          ? <img src={imgSrc} alt={product.name} className="vd-product-card__img" />
+          : <div className="vd-product-card__no-img">🌿</div>
+        }
+        {product.thcPct != null && product.thcPct !== "" && (
+          <span className="vd-product-card__thc-badge">
+            THC {product.thcPct}{product.thcUnit || "%"}
+          </span>
+        )}
+        {product.featured && <span className="vd-product-card__featured">⭐ Featured</span>}
+        {!product.inStock && <span className="vd-product-card__oos">Out of Stock</span>}
+      </div>
 
       <div className="vd-product-card__body">
         <div className="vd-product-card__cat">{product.category}</div>
         <div className="vd-product-card__name">{product.name}</div>
+        {product.brand && <div className="vd-product-card__brand">{product.brand}</div>}
 
         <div className="vd-product-card__stats">
-          {product.thcPct !== "" && product.thcPct !== undefined && (
-            <span className="vd-stat vd-stat--thc">THC {product.thcPct}%</span>
+          {product.thcPct != null && product.thcPct !== "" && (
+            <span className="vd-stat vd-stat--thc">THC {product.thcPct}{product.thcUnit || "%"}</span>
           )}
           {product.cbdPct !== "" && product.cbdPct !== undefined && (
             <span className="vd-stat vd-stat--cbd">CBD {product.cbdPct}%</span>
@@ -480,10 +502,333 @@ function StoreProfileTab({ vendor, onSaved }) {
   );
 }
 
+/* ── Catalog Manager Tab ────────────────────────────────────────── */
+function CatalogManagerTab({ vendor, products, onVendorUpdate, onProductsUpdate }) {
+  const [slug, setSlug] = useState(vendor.catalogSlug || toVendorSlug(vendor.storeName));
+  const catalogUrl = `${window.location.origin}/catalog/${slug}`;
+  const [settings, setSettings] = useState({
+    catalogThemeColor: vendor.catalogThemeColor || "#3d6b4a",
+    catalogWelcomeText: vendor.catalogWelcomeText || "",
+    catalogBannerUrl: vendor.catalogBannerUrl || "",
+    catalogBannerPath: vendor.catalogBannerPath || "",
+  });
+  const [saving,    setSaving]    = useState(false);
+  const [saved,     setSaved]     = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [copied,    setCopied]    = useState(false);
+  const [qrSrc,     setQrSrc]     = useState("");
+  const [showQR,    setShowQR]    = useState(false);
+  const [orders,    setOrders]    = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [wholePrices, setWholePrices] = useState(() =>
+    Object.fromEntries(products.map(p => [p.id, p.wholesalePrice ?? ""]))
+  );
+  const [pricesSaving, setPricesSaving] = useState(false);
+  const [pricesSaved,  setPricesSaved]  = useState(false);
+  const [imgUploading, setImgUploading] = useState({});
+  const bannerRef = useRef();
+
+  useEffect(() => {
+    if (!vendor.catalogSlug) {
+      ensureVendorSlug(vendor.id, vendor.storeName).then(s => {
+        setSlug(s);
+        onVendorUpdate({ ...vendor, catalogSlug: s });
+      }).catch(console.error);
+    }
+  }, [vendor.id]);
+
+  useEffect(() => {
+    getVendorOrders(vendor.id)
+      .then(setOrders)
+      .catch(console.error)
+      .finally(() => setLoadingOrders(false));
+  }, [vendor.id]);
+
+  useEffect(() => {
+    QRCode.toDataURL(catalogUrl, { width: 200, margin: 2 }).then(setQrSrc);
+  }, [catalogUrl]);
+
+  const handleProductImgUpload = (productId) => async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return alert("Image must be under 5 MB");
+    setImgUploading(s => ({ ...s, [productId]: true }));
+    try {
+      const { url, path } = await uploadProductImage(vendor.id, file);
+      await updateProduct(productId, { imageUrl: url, imagePath: path });
+      onProductsUpdate(products.map(p => p.id === productId ? { ...p, imageUrl: url, imagePath: path } : p));
+    } catch (err) { console.error(err); alert("Image upload failed."); }
+    finally { setImgUploading(s => ({ ...s, [productId]: false })); e.target.value = ""; }
+  };
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      await updateCatalogSettings(vendor.id, settings);
+      onVendorUpdate({ ...vendor, ...settings });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    const input = e.target;
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return alert("Banner must be under 5 MB");
+    setUploading(true);
+    try {
+      const { url, path } = await uploadCatalogBanner(vendor.id, file);
+      const next = { ...settings, catalogBannerUrl: url, catalogBannerPath: path };
+      setSettings(next);
+      await updateCatalogSettings(vendor.id, next);
+      onVendorUpdate({ ...vendor, ...next });
+    } catch (err) {
+      console.error("Banner upload failed:", err);
+      alert("Banner upload failed — please try again. If this keeps happening, contact support.");
+    } finally {
+      setUploading(false);
+      input.value = "";
+    }
+  };
+
+  const handleSaveWholesalePrices = async () => {
+    setPricesSaving(true);
+    try {
+      await Promise.all(
+        products.map(p =>
+          updateProduct(p.id, { wholesalePrice: wholePrices[p.id] ?? "" })
+        )
+      );
+      onProductsUpdate(products.map(p => ({ ...p, wholesalePrice: wholePrices[p.id] ?? "" })));
+      setPricesSaved(true);
+      setTimeout(() => setPricesSaved(false), 2000);
+    } catch (e) { console.error(e); }
+    finally { setPricesSaving(false); }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(catalogUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    });
+  };
+
+  const ORDER_STATUS_COLORS = {
+    pending: "#f59e0b", confirmed: "#3b82f6", fulfilled: "#10b981", cancelled: "#ef4444",
+  };
+
+  return (
+    <div className="catalog-mgr">
+      {/* Share / QR row */}
+      <div className="catalog-mgr__share">
+        <div className="catalog-mgr__share-url">
+          <span className="catalog-mgr__share-label">📖 Your Catalog Link</span>
+          <a href={catalogUrl} target="_blank" rel="noopener noreferrer" className="catalog-mgr__share-link">{catalogUrl}</a>
+        </div>
+        <div className="catalog-mgr__share-actions">
+          <button className="btn btn--sm btn--outline" onClick={handleCopy}>
+            {copied ? "✓ Copied!" : "🔗 Copy Link"}
+          </button>
+          <button className="btn btn--sm btn--outline" onClick={() => setShowQR(o => !o)}>
+            📲 {showQR ? "Hide QR" : "Show QR"}
+          </button>
+          <Link to={`/catalog/${slug}`} target="_blank" className="btn btn--sm btn--primary">
+            View Catalog ↗
+          </Link>
+        </div>
+      </div>
+
+      {showQR && qrSrc && (
+        <div className="catalog-mgr__qr-panel">
+          <img src={qrSrc} alt="QR Code" className="catalog-mgr__qr-img" />
+          <div>
+            <p className="catalog-mgr__qr-hint">Sales reps can show this to buyers — scanning opens the catalog instantly.</p>
+            <a href={qrSrc} download={`${vendor.storeName}-catalog-qr.png`} className="btn btn--sm btn--outline">
+              ⬇ Download QR PNG
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Appearance settings */}
+      <div className="catalog-mgr__section">
+        <h3 className="catalog-mgr__section-title">🎨 Catalog Appearance</h3>
+        <div className="catalog-mgr__appearance">
+          <div className="catalog-mgr__field">
+            <label>Theme Color</label>
+            <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+              <input
+                type="color"
+                value={settings.catalogThemeColor}
+                onChange={e => setSettings(s => ({ ...s, catalogThemeColor: e.target.value }))}
+                className="catalog-mgr__color-picker"
+              />
+              <span style={{ fontSize: ".8rem", color: "var(--c-text-muted)" }}>{settings.catalogThemeColor}</span>
+            </div>
+          </div>
+          <div className="catalog-mgr__field" style={{ flex: 2 }}>
+            <label>Welcome Message</label>
+            <input
+              value={settings.catalogWelcomeText}
+              onChange={e => setSettings(s => ({ ...s, catalogWelcomeText: e.target.value }))}
+              placeholder="Premium wholesale catalog — contact us for orders & pricing"
+            />
+          </div>
+        </div>
+
+        {/* Banner upload */}
+        <div className="catalog-mgr__field" style={{ marginTop: ".75rem" }}>
+          <label>Header Banner Image</label>
+          <div
+            className="catalog-mgr__banner-zone"
+            onClick={() => bannerRef.current?.click()}
+            style={settings.catalogBannerUrl ? { backgroundImage: `url(${settings.catalogBannerUrl})` } : {}}
+          >
+            {settings.catalogBannerUrl
+              ? <div className="catalog-mgr__banner-overlay">{uploading ? "Uploading…" : "Click to Replace"}</div>
+              : <div className="catalog-mgr__banner-placeholder">
+                  {uploading ? "Uploading…" : "📷 Click to Upload Banner (Recommended: 1400 × 400 px)"}
+                </div>
+            }
+          </div>
+          <input ref={bannerRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleBannerUpload} />
+        </div>
+
+        <button className="btn btn--primary" onClick={handleSaveSettings} disabled={saving} style={{ marginTop: ".75rem" }}>
+          {saving ? "Saving…" : saved ? "✓ Saved!" : "Save Appearance"}
+        </button>
+      </div>
+
+      {/* Wholesale pricing */}
+      <div className="catalog-mgr__section">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".75rem" }}>
+          <h3 className="catalog-mgr__section-title" style={{ margin: 0 }}>💰 Wholesale Pricing &amp; Availability</h3>
+          <button className="btn btn--sm btn--primary" onClick={handleSaveWholesalePrices} disabled={pricesSaving}>
+            {pricesSaving ? "Saving…" : pricesSaved ? "✓ Saved!" : "Save Prices"}
+          </button>
+        </div>
+        <p style={{ fontSize: ".8rem", color: "var(--c-text-muted)", margin: "0 0 .75rem" }}>
+          Set wholesale prices shown on your catalog. Retail prices from the main product listing remain separate.
+        </p>
+        <div className="catalog-mgr__price-table">
+          <div className="catalog-mgr__price-header">
+            <span>Photo</span>
+            <span>Product</span>
+            <span>Category</span>
+            <span>Retail $</span>
+            <span>Wholesale $</span>
+            <span>Stock</span>
+          </div>
+          {products.map(p => {
+            const imgSrc = p.imageUrl || (STRAIN_IMAGE_MAP[p.name] ? `/product-images/${STRAIN_IMAGE_MAP[p.name]}` : null);
+            return (
+            <div key={p.id} className="catalog-mgr__price-row">
+              <label className="catalog-mgr__price-img-cell" title="Click to upload photo">
+                {imgUploading[p.id]
+                  ? <span className="catalog-mgr__price-img-loading">⏳</span>
+                  : imgSrc
+                    ? <img src={imgSrc} alt={p.name} className="catalog-mgr__price-img-thumb" />
+                    : <span className="catalog-mgr__price-img-empty">📷</span>
+                }
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleProductImgUpload(p.id)} />
+              </label>
+              <span className="catalog-mgr__price-name">{p.name}</span>
+              <span style={{ fontSize: ".78rem", color: "var(--c-text-muted)" }}>{p.category}</span>
+              <span style={{ fontSize: ".85rem" }}>{p.price ? `$${parseFloat(p.price).toFixed(2)}` : "—"}</span>
+              <input
+                type="number" min="0" step="0.01"
+                className="catalog-mgr__price-input"
+                placeholder="0.00"
+                value={wholePrices[p.id] ?? ""}
+                onChange={e => setWholePrices(w => ({ ...w, [p.id]: e.target.value }))}
+              />
+              <span style={{ fontSize: ".78rem", color: "var(--c-text-muted)" }}>
+                {p.stockCount != null && p.stockCount !== "" ? `${p.stockCount} u.` : "—"}
+              </span>
+            </div>
+            );
+          })}
+          {products.length === 0 && (
+            <div style={{ padding: "1rem", color: "var(--c-text-muted)", textAlign: "center", fontSize: ".85rem" }}>
+              No products yet — add products in the Products tab first.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Orders inbox */}
+      <div className="catalog-mgr__section">
+        <h3 className="catalog-mgr__section-title">📦 Wholesale Order Inbox</h3>
+        {loadingOrders ? (
+          <div style={{ color: "var(--c-text-muted)", fontSize: ".85rem" }}>Loading orders…</div>
+        ) : orders.length === 0 ? (
+          <div className="vd-empty" style={{ padding: "2rem" }}>
+            <div className="vd-empty__icon">📦</div>
+            <h3>No orders yet</h3>
+            <p>Share your catalog link or QR code with buyers to start receiving wholesale inquiries.</p>
+          </div>
+        ) : (
+          <div className="catalog-mgr__orders">
+            {orders.map(order => (
+              <div key={order.id} className="catalog-mgr__order-card">
+                <div className="catalog-mgr__order-head">
+                  <div>
+                    <div className="catalog-mgr__order-buyer">{order.buyerName}
+                      {order.buyerBusiness && <span> · {order.buyerBusiness}</span>}
+                    </div>
+                    <div className="catalog-mgr__order-contact">
+                      {order.buyerEmail} {order.buyerPhone && `· ${order.buyerPhone}`}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
+                    <span className="catalog-mgr__order-status" style={{ background: ORDER_STATUS_COLORS[order.status] + "22", color: ORDER_STATUS_COLORS[order.status], border: `1px solid ${ORDER_STATUS_COLORS[order.status]}55` }}>
+                      {order.status}
+                    </span>
+                    <select
+                      value={order.status}
+                      onChange={async e => {
+                        await updateOrderStatus(order.id, e.target.value);
+                        setOrders(os => os.map(o => o.id === order.id ? { ...o, status: e.target.value } : o));
+                      }}
+                      className="catalog-mgr__order-select"
+                    >
+                      {["pending","confirmed","fulfilled","cancelled"].map(s => (
+                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="catalog-mgr__order-items">
+                  {order.items?.map((item, i) => (
+                    <span key={i} className="catalog-mgr__order-item">
+                      {item.productName} × {item.qty}
+                      {item.wholesalePrice ? ` · $${(item.wholesalePrice * item.qty).toFixed(2)}` : ""}
+                    </span>
+                  ))}
+                </div>
+                {order.totalWholesale > 0 && (
+                  <div className="catalog-mgr__order-total">Est. Total: <strong>${order.totalWholesale.toFixed(2)}</strong></div>
+                )}
+                {order.notes && <div className="catalog-mgr__order-notes">"{order.notes}"</div>}
+                <div className="catalog-mgr__order-date">
+                  {order.createdAt?.toDate?.()?.toLocaleString() ?? "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Main Vendor Dashboard ──────────────────────────────────────── */
 export default function VendorDashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [allVendors, setAllVendors] = useState([]);
   const [vendor,   setVendor]   = useState(null);
   const [products, setProducts] = useState([]);
   const [tab,      setTab]      = useState("products");
@@ -494,15 +839,34 @@ export default function VendorDashboard() {
     if (loading || !user) return;
     (async () => {
       try {
-        const v = await getVendorByOwner(user.id);
-        setVendor(v);
-        if (v?.status === "approved") {
-          setProducts(await getVendorProducts(v.id));
+        const vendors = await getVendorsByUser(user.id, user.email);
+        // Back-fill catalogSlug for any vendor that doesn't have one
+        for (const v of vendors) {
+          if (!v.catalogSlug && v.storeName) {
+            v.catalogSlug = await ensureVendorSlug(v.id, v.storeName);
+          }
+        }
+        setAllVendors(vendors);
+        if (vendors.length > 0) {
+          const v = vendors[0];
+          setVendor(v);
+          if (v?.status === "approved") {
+            setProducts(await getVendorProducts(v.id));
+          }
         }
       } catch (e) { console.error(e); }
       finally { setFetching(false); }
     })();
   }, [user, loading]);
+
+  const switchStore = async (v) => {
+    setVendor(v);
+    setProducts([]);
+    setTab("products");
+    if (v?.status === "approved") {
+      setProducts(await getVendorProducts(v.id));
+    }
+  };
 
   if (loading || fetching) return <div className="app-loading">🌿</div>;
 
@@ -519,7 +883,7 @@ export default function VendorDashboard() {
     );
   }
 
-  if (!vendor) {
+  if (allVendors.length === 0) {
     return (
       <div className="vd-gate">
         <div className="vd-gate__card">
@@ -593,8 +957,9 @@ export default function VendorDashboard() {
   };
 
   const TABS = [
-    { id: "products", label: "🛍️ Products" },
-    { id: "profile",  label: "🏪 Store Profile" },
+    { id: "products",  label: "🛍️ Products" },
+    { id: "profile",   label: "🏪 Store Profile" },
+    ...(vendor.tier === "premium" ? [{ id: "catalog", label: "📖 Store Catalog" }] : []),
     ...(vendor.tier === "premium" || vendor.tier === "standard"
       ? [{ id: "analytics", label: "📊 Analytics" }]
       : []
@@ -606,7 +971,26 @@ export default function VendorDashboard() {
       {/* Header */}
       <div className="vd-header">
         <div className="vd-header__inner">
-          <div>
+          <div style={{ flex: 1 }}>
+            {allVendors.length > 1 && (
+              <div className="vd-store-picker">
+                {allVendors.map(v => (
+                  <button
+                    key={v.id}
+                    className={`vd-store-pill ${vendor?.id === v.id ? "vd-store-pill--active" : ""}`}
+                    onClick={() => switchStore(v)}
+                  >
+                    {v.storeName}
+                    <span className="vd-store-pill__tier" style={{ background: TIER_COLORS[v.tier] ?? "#64748b" }}>
+                      {TIER_LABELS[v.tier] ?? v.tier}
+                    </span>
+                  </button>
+                ))}
+                <button className="vd-store-pill vd-store-pill--new" onClick={() => navigate("/vendor/register")}>
+                  + New Store
+                </button>
+              </div>
+            )}
             <div className="vd-header__store">{vendor.storeName}</div>
             <div className="vd-header__meta">
               📍 {vendor.city}, NY
@@ -618,9 +1002,16 @@ export default function VendorDashboard() {
               </span>
             </div>
           </div>
-          <button className="btn btn--sm btn--outline" style={{ color: "#fff", borderColor: "rgba(255,255,255,.3)" }} onClick={() => navigate("/discover")}>
-            View on Discover
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+            <button className="btn btn--sm btn--outline" style={{ color: "#fff", borderColor: "rgba(255,255,255,.3)" }} onClick={() => navigate("/discover")}>
+              View on Discover
+            </button>
+            {allVendors.length === 1 && (
+              <button className="btn btn--sm btn--outline" style={{ color: "rgba(255,255,255,.6)", borderColor: "rgba(255,255,255,.2)", fontSize: ".72rem" }} onClick={() => navigate("/vendor/register")}>
+                + Add Another Store
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="vd-header__stats">
@@ -719,6 +1110,16 @@ export default function VendorDashboard() {
         {/* ── Store Profile Tab ── */}
         {tab === "profile" && (
           <StoreProfileTab vendor={vendor} onSaved={setVendor} />
+        )}
+
+        {/* ── Store Catalog Tab (Premium) ── */}
+        {tab === "catalog" && (
+          <CatalogManagerTab
+            vendor={vendor}
+            products={products}
+            onVendorUpdate={setVendor}
+            onProductsUpdate={setProducts}
+          />
         )}
 
         {/* ── Analytics Tab ── */}

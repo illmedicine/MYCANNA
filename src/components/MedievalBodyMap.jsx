@@ -92,7 +92,7 @@ const SVG_DEFS = (
 );
 
 // ── Plush knitted figure SVG ──────────────────────────────────────────────────
-function PlushFigureSVG({ activeId, gender = "neutral" }) {
+function PlushFigureSVG({ activeId, gender = "neutral", conditionRegions }) {
   const isFemale  = gender === "female";
   const isMale    = gender === "male";
 
@@ -280,6 +280,47 @@ function PlushFigureSVG({ activeId, gender = "neutral" }) {
         fill="none" stroke={stitchLine} strokeWidth="2.2"
         strokeLinecap="round" strokeDasharray="3.5 2.2"/>
 
+      {/* ── Condition alert rings (pulsing amber) ────── */}
+      {conditionRegions && ENDO_REGIONS.map(r => {
+        if (!conditionRegions.has(r.id)) return null;
+        const isActive = activeId === r.id;
+        return (
+          <g key={r.id + "-condition"}>
+            <circle
+              cx={r.hx} cy={r.hy} r="28"
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="2.5"
+              opacity={isActive ? 0.9 : 0.7}
+              style={{ pointerEvents: "none" }}
+            >
+              <animate attributeName="r" values="26;31;26" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.7;0.2;0.7" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle
+              cx={r.hx} cy={r.hy} r="22"
+              fill="#f59e0b"
+              opacity="0.18"
+              style={{ pointerEvents: "none" }}
+            >
+              <animate attributeName="opacity" values="0.18;0.05;0.18" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            {/* Small amber alert badge */}
+            <circle
+              cx={r.hx + 11} cy={r.hy - 11} r="6"
+              fill="#f59e0b"
+              style={{ pointerEvents: "none" }}
+            />
+            <text
+              x={r.hx + 11} y={r.hy - 8}
+              fontSize="7" textAnchor="middle"
+              fill="#1e1e1e" fontWeight="900"
+              style={{ pointerEvents: "none" }}
+            >!</text>
+          </g>
+        );
+      })}
+
       {/* ── Hotspot glows ────────────────────────────── */}
       {ENDO_REGIONS.map(r => (
         <circle
@@ -346,10 +387,10 @@ function PlushFigureSVG({ activeId, gender = "neutral" }) {
 }
 
 // ── Public component ──────────────────────────────────────────────────────────
-export default function MedievalBodyMap({ onRegionChange, activeId, gender = "neutral" }) {
+export default function MedievalBodyMap({ onRegionChange, activeId, gender = "neutral", conditionRegions }) {
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <PlushFigureSVG activeId={activeId} gender={gender} />
+      <PlushFigureSVG activeId={activeId} gender={gender} conditionRegions={conditionRegions} />
 
       {/* Transparent hit-targets over each hotspot */}
       <svg

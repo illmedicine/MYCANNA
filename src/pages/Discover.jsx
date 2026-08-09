@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { getApprovedVendors, getAllProducts } from "../services/vendorService.js";
+import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
+
+function productImage(product) {
+  if (product.imageUrl) return product.imageUrl;
+  const file = STRAIN_IMAGE_MAP[product.name];
+  return file ? `/product-images/${file}` : null;
+}
 
 /* ── Terpene data ──────────────────────────────────────────────────── */
 const EARTHY_TERPENES = ["Myrcene", "Caryophyllene", "Humulene", "Bisabolol"];
@@ -142,11 +149,12 @@ function matchColor(score) {
 
 /* ── Product Card ──────────────────────────────────────────────────── */
 function ProductCard({ product, score, vendorName, onClick }) {
+  const imgSrc = productImage(product);
   return (
     <button className="disc-product-card" onClick={onClick}>
       <div className="disc-product-card__media">
-        {product.imageUrl
-          ? <img src={product.imageUrl} alt={product.name} className="disc-product-card__img" />
+        {imgSrc
+          ? <img src={imgSrc} alt={product.name} className="disc-product-card__img" />
           : <div className="disc-product-card__icon">{CAT_ICON[product.category] || "🌿"}</div>
         }
         {score !== null && (
@@ -154,15 +162,21 @@ function ProductCard({ product, score, vendorName, onClick }) {
             {score}% match
           </span>
         )}
+        {product.thcPct != null && (
+          <span className="disc-product-card__thc-badge">THC {product.thcPct}{product.thcUnit || "%"}</span>
+        )}
         {!product.inStock && <span className="disc-product-card__oos">Out of Stock</span>}
       </div>
 
       <div className="disc-product-card__body">
         <div className="disc-product-card__cat">{product.category}</div>
         <div className="disc-product-card__name">{product.name}</div>
+        {product.brand && (
+          <div className="disc-product-card__brand">{product.brand}</div>
+        )}
 
         <div className="disc-product-card__stats">
-          {product.thcPct ? <span className="disc-stat disc-stat--thc">THC {product.thcPct}%</span> : null}
+          {product.thcPct != null ? <span className="disc-stat disc-stat--thc">THC {product.thcPct}{product.thcUnit || "%"}</span> : null}
           {product.cbdPct && parseFloat(product.cbdPct) > 0
             ? <span className="disc-stat disc-stat--cbd">CBD {product.cbdPct}%</span> : null}
           {product.price  ? <span className="disc-stat">${parseFloat(product.price).toFixed(0)}</span> : null}
@@ -207,10 +221,10 @@ function ProductDetailModal({ product, vendor, userProfile, score, onClose, onLo
 
         {/* Header */}
         <div className="pdm__hero">
-          {product.imageUrl
-            ? <img src={product.imageUrl} alt={product.name} className="pdm__img" />
-            : <div className="pdm__icon">{CAT_ICON[product.category] || "🌿"}</div>
-          }
+          {(() => { const s = productImage(product); return s
+            ? <img src={s} alt={product.name} className="pdm__img" />
+            : <div className="pdm__icon">{CAT_ICON[product.category] || "🌿"}</div>;
+          })()}
           <button className="pdm__close" onClick={onClose}>✕</button>
         </div>
 
@@ -245,7 +259,7 @@ function ProductDetailModal({ product, vendor, userProfile, score, onClose, onLo
 
           {/* Stats */}
           <div className="pdm__stats">
-            {product.thcPct ? <div className="pdm__stat"><span className="pdm__stat-n">{product.thcPct}%</span><span className="pdm__stat-l">THC</span></div> : null}
+            {product.thcPct != null ? <div className="pdm__stat"><span className="pdm__stat-n">{product.thcPct}{product.thcUnit || "%"}</span><span className="pdm__stat-l">THC</span></div> : null}
             {product.cbdPct && parseFloat(product.cbdPct) > 0
               ? <div className="pdm__stat"><span className="pdm__stat-n">{product.cbdPct}%</span><span className="pdm__stat-l">CBD</span></div> : null}
             {product.price ? <div className="pdm__stat"><span className="pdm__stat-n">${parseFloat(product.price).toFixed(2)}</span><span className="pdm__stat-l">Price</span></div> : null}
@@ -506,33 +520,35 @@ export default function Discover() {
               <span className="rec-section__sub">Matched to your cannabis profile</span>
             </div>
             <div className="rec-scroll">
-              {recommended.map(p => (
-                <button key={p.id} className="rec-card" onClick={() => setSelected(p)}>
-                  {p.imageUrl
-                    ? <img src={p.imageUrl} alt={p.name} className="rec-card__img" />
-                    : <div className="rec-card__icon">{CAT_ICON[p.category] || "🌿"}</div>
-                  }
-                  <div className="rec-card__match" style={{ background: matchColor(p._score) }}>
-                    {p._score}% match
-                  </div>
-                  <div className="rec-card__body">
-                    <div className="rec-card__cat">{p.category}</div>
-                    <div className="rec-card__name">{p.name}</div>
-                    <div className="rec-card__meta">
-                      {p.thcPct ? <span className="vcard-thc">THC {p.thcPct}%</span> : null}
-                      {p.price  ? <span className="vcard-price">${parseFloat(p.price).toFixed(0)}</span> : null}
+              {recommended.map(p => {
+                const recImg = productImage(p);
+                return (
+                  <button key={p.id} className="rec-card" onClick={() => setSelected(p)}>
+                    {recImg
+                      ? <img src={recImg} alt={p.name} className="rec-card__img" />
+                      : <div className="rec-card__icon">{CAT_ICON[p.category] || "🌿"}</div>
+                    }
+                    <div className="rec-card__match" style={{ background: matchColor(p._score) }}>
+                      {p._score}% match
                     </div>
-                    {p._vendor && <div className="rec-card__vendor">📍 {p._vendor.storeName}</div>}
-                    {p.primaryTerpenes?.length > 0 && (
-                      <div className="rec-card__terpenes">
-                        {p.primaryTerpenes.slice(0, 2).map(t => (
-                          <span key={t} className="rec-terpene">{t}</span>
-                        ))}
+                    <div className="rec-card__body">
+                      <div className="rec-card__cat">{p.category}</div>
+                      <div className="rec-card__name">{p.name}</div>
+                      <div className="rec-card__meta">
+                        {p.thcPct != null ? <span className="vcard-thc">THC {p.thcPct}{p.thcUnit || "%"}</span> : null}
                       </div>
-                    )}
-                  </div>
-                </button>
-              ))}
+                      {p._vendor && <div className="rec-card__vendor">📍 {p._vendor.storeName}</div>}
+                      {p.primaryTerpenes?.length > 0 && (
+                        <div className="rec-card__terpenes">
+                          {p.primaryTerpenes.slice(0, 2).map(t => (
+                            <span key={t} className="rec-terpene">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import MycanaLogo from "./Logo.jsx";
 
+const ADMIN_EMAILS = ['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'demarkuswilsone@gmail.com'];
+
 const NAV_LINKS = [
   { to: "/discover",   label: "Discover",    icon: "🗺️" },
   { to: "/dashboard",  label: "Dashboard",   icon: "🧬", protected: true },
@@ -43,6 +45,9 @@ export default function Navbar() {
         <div className="navbar__actions">
           {user ? (
             <>
+              {ADMIN_EMAILS.includes(user.email) && (
+                <Link to="/admin" className="navbar__admin-btn">⚙ Admin</Link>
+              )}
               <Link to="/dashboard" className="btn btn--sm btn--outline navbar__profile-btn">
                 My Profile
               </Link>
@@ -82,6 +87,11 @@ export default function Navbar() {
               ))}
               {user && (
                 <>
+                  {ADMIN_EMAILS.includes(user.email) && (
+                    <Link to="/admin" className="nav-menu__link nav-menu__link--admin" onClick={() => setMenuOpen(false)}>
+                      <span>⚙</span> Admin Portal
+                    </Link>
+                  )}
                   <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>🧬</span> My Dashboard
                   </Link>

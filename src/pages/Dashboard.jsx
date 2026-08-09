@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import BiSlider from "../components/BiSlider.jsx";
 import { ARCHETYPE_AVATARS } from "../components/ArchetypeAvatars.jsx";
 import MedievalBodyMap, { ENDO_REGIONS } from "../components/MedievalBodyMap.jsx";
+import { getConditionsForRegion, getActiveConditionRegions } from "../data/conditionInsights.js";
 import { getUserExperiences } from "../services/experienceService.js";
 import { getUserPrestige } from "../services/prestigeService.js";
+import { saveProfile } from "../services/userService.js";
 
 // ── Medical conditions ────────────────────────────────────────────────────────
 const MEDICAL_CONDITIONS = [
@@ -216,9 +218,30 @@ function ArchetypeCard({
   navigate,
   onSaveHealth,
 }) {
+  const { user, setSavedProfile } = useAuth();
   const [bodyRegion,    setBodyRegion]    = useState(null);
   const [editingHealth, setEditingHealth] = useState(false);
   const [saveError,     setSaveError]     = useState("");
+  const [profileDraft,  setProfileDraft]  = useState(() => ({ ...savedProfile }));
+  const [profileSaved,  setProfileSaved]  = useState(false);
+  const saveTimer = useRef(null);
+
+  // Keep draft in sync if savedProfile changes externally
+  useEffect(() => { setProfileDraft({ ...savedProfile }); }, [savedProfile]);
+
+  const handleSliderChange = useCallback((id, val) => {
+    setProfileDraft(prev => {
+      const next = { ...prev, [id]: val };
+      clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(async () => {
+        await saveProfile(user.id, next);
+        setSavedProfile(next);
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 1800);
+      }, 700);
+      return next;
+    });
+  }, [user, setSavedProfile]);
 
   const theme      = ARCHETYPE_THEMES[archetype];
   const avatarInfo = ARCHETYPE_AVATARS[archetype];
@@ -248,6 +271,7 @@ function ArchetypeCard({
   };
 
   const gender = healthData?.gender ?? "neutral";
+  const conditionRegions = getActiveConditionRegions(activeConditions);
 
   const darkVars = {
     "--c-text":       "#ffffff",
@@ -262,7 +286,7 @@ function ArchetypeCard({
       {/* ── Body map hero ── */}
       <div className="atype-card__hero atype-card__hero--body">
         <div className="atype-card__avatar-wrap atype-card__avatar-wrap--body">
-          <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} gender={gender} />
+          <MedievalBodyMap onRegionChange={setBodyRegion} activeId={bodyRegion} gender={gender} conditionRegions={conditionRegions} />
         </div>
         <div className="atype-card__avatar-label">
           {bodyRegion
@@ -273,7 +297,9 @@ function ArchetypeCard({
 
       {/* ── Info panel ── */}
       <div className="atype-card__info" style={{ position: "relative", ...darkVars }}>
-        {region ? (
+        {region ? (() => {
+          const conditionMatches = getConditionsForRegion(region.id, activeConditions);
+          return (
           <div className="atype-body-panel">
             <button className="atype-body-panel__back" onClick={() => setBodyRegion(null)}>← {character}</button>
             <div className="atype-body-panel__header">
@@ -287,8 +313,52 @@ function ArchetypeCard({
               {region.effects.map(e => <span key={e} className="atype-body-effect">{e}</span>)}
             </div>
             <p className="atype-body-panel__insight">{region.insight}</p>
+
+            {conditionMatches.length > 0 && (
+              <div className="cond-insights">
+                <div className="cond-insights__hd">
+                  <span className="cond-insights__icon">⚕️</span>
+                  <span className="cond-insights__title">Your Condition Guidance</span>
+                </div>
+                {conditionMatches.map(cond => (
+                  <div key={cond.name} className="cond-card">
+                    <div className="cond-card__name">{cond.name}</div>
+                    <p className="cond-card__how">{cond.how}</p>
+                    <div className="cond-card__grid">
+                      <div className="cond-card__row">
+                        <span className="cond-card__lbl">Cannabinoids</span>
+                        <span className="cond-card__val">{cond.cannabinoids}</span>
+                      </div>
+                      <div className="cond-card__row">
+                        <span className="cond-card__lbl">Terpenes</span>
+                        <span className="cond-card__val">{cond.terpenes.join(", ")}</span>
+                      </div>
+                      <div className="cond-card__row">
+                        <span className="cond-card__lbl">Best Methods</span>
+                        <div className="cond-card__methods">
+                          {cond.methods.map(m => <span key={m} className="cond-method">{m}</span>)}
+                        </div>
+                      </div>
+                      {cond.avoid && (
+                        <div className="cond-card__row cond-card__row--warn">
+                          <span className="cond-card__lbl">Avoid</span>
+                          <span className="cond-card__val cond-card__val--warn">{cond.avoid}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="cond-card__strain">
+                      <span className="cond-card__strain-lbl">Strain type</span>
+                      <span className="cond-card__strain-val">{cond.strainType}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ) : (
+          );
+        })()
+        : null}
+        {!region && (
           <>
             {/* ── Archetype identity ── */}
             <div className="atype-card__class-badge"><span>{character}</span></div>
@@ -475,9 +545,19 @@ function ArchetypeCard({
                       </div>
                     )}
                     <div className="profile-section">
-                      <h3 className="profile-section__title">🎛️ Profile Snapshot</h3>
+                      <div className="profile-section__hd">
+                        <h3 className="profile-section__title">🎛️ Profile Snapshot</h3>
+                        {profileSaved && <span className="profile-saved-badge">✓ Saved</span>}
+                      </div>
                       <div className="snapshot-sliders">
-                        {SLIDER_META.map(q => <BiSlider key={q.id} {...q} value={savedProfile[q.id]} readonly />)}
+                        {SLIDER_META.map(q => (
+                          <BiSlider
+                            key={q.id}
+                            {...q}
+                            value={profileDraft[q.id] ?? savedProfile[q.id] ?? 50}
+                            onChange={(v) => handleSliderChange(q.id, v)}
+                          />
+                        ))}
                       </div>
                     </div>
                     <div className="profile-actions">
@@ -812,9 +892,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    Promise.all([getUserExperiences(user.id), getUserPrestige(user.id)])
-      .then(([exps, pres]) => { setExperiences(exps); setPrestige(pres ?? { points: 0 }); setLoading(false); })
-      .catch(() => setLoading(false));
+    getUserPrestige(user.id).then(pres => setPrestige(pres ?? { points: 0 })).catch(() => {});
+    getUserExperiences(user.id)
+      .then(exps => setExperiences(exps))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [user]);
 
   useEffect(() => {

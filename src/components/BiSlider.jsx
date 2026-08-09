@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { playSliderSound, valueToLevel } from '../utils/sliderSounds.js';
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -17,6 +18,7 @@ function interpolateColor(colorA, colorB, t) {
 }
 
 export default function BiSlider({
+  id,
   label,
   description,
   leftLabel,
@@ -31,9 +33,16 @@ export default function BiSlider({
   rightColor = '#10b981',
   readonly = false,
 }) {
-  const inputRef = useRef(null);
+  const inputRef   = useRef(null);
+  const prevLevel  = useRef(valueToLevel(value)); // init silently — no sound on mount
   const [dragging, setDragging] = useState(false);
-  const percent = ((value - min) / (max - min)) * 100;
+
+  // Reset level tracking whenever the slider identity changes (e.g. Assessment stepping through questions)
+  useEffect(() => {
+    prevLevel.current = valueToLevel(value);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+  const percent    = ((value - min) / (max - min)) * 100;
   const thumbColor = interpolateColor(leftColor, rightColor, percent / 100);
 
   useEffect(() => {
@@ -46,10 +55,15 @@ export default function BiSlider({
       rgba(255,255,255,0.18) 100%)`;
   }, [value, leftColor, rightColor, percent, thumbColor]);
 
-  const positionLabel = () => {
-    if (percent < 20) return 'left';
-    if (percent > 80) return 'right';
-    return 'center';
+  const handleChange = (e) => {
+    const newVal   = Number(e.target.value);
+    const newLevel = valueToLevel(newVal);
+    // Only fire sound when crossing a level threshold (every 20 pts)
+    if (!readonly && id && newLevel !== prevLevel.current) {
+      prevLevel.current = newLevel;
+      playSliderSound(id, newVal);
+    }
+    onChange?.(newVal);
   };
 
   return (
@@ -85,7 +99,7 @@ export default function BiSlider({
             disabled={readonly}
             className="bi-slider__input"
             style={{ '--thumb-color': thumbColor }}
-            onChange={(e) => onChange?.(Number(e.target.value))}
+            onChange={handleChange}
             onMouseDown={() => setDragging(true)}
             onMouseUp={() => setDragging(false)}
             onTouchStart={() => setDragging(true)}

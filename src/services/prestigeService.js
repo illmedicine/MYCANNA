@@ -58,10 +58,24 @@ export async function awardPrestige(uid, points, reason) {
 }
 
 export async function getUserPrestige(uid) {
-  const snap = await getDoc(doc(db, "users", uid));
-  if (!snap.exists()) return { points: 0 };
-  const data = snap.data();
-  return { points: data.prestigePoints ?? 0, level: data.prestigeLevel ?? LEVELS[0].title };
+  const [userSnap, lbSnap] = await Promise.all([
+    getDoc(doc(db, "users", uid)),
+    getDoc(doc(db, "leaderboard", uid)),
+  ]);
+
+  const userPoints = userSnap.exists() ? (userSnap.data().prestigePoints ?? 0) : 0;
+  const lbPoints   = lbSnap.exists()   ? (lbSnap.data().points ?? 0)           : 0;
+
+  // Use whichever source has the higher value (leaderboard is the write-side truth)
+  const points = Math.max(userPoints, lbPoints);
+  const level  = getLevelForPoints(points);
+
+  // Heal the discrepancy if they're out of sync
+  if (points > userPoints && userSnap.exists()) {
+    setDoc(doc(db, "users", uid), { prestigePoints: points, prestigeLevel: level.title }, { merge: true });
+  }
+
+  return { points, level: level.title };
 }
 
 export async function getLeaderboard(n = 50) {

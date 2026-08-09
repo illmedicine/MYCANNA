@@ -1,11 +1,27 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Product images — only authenticated users can upload; anyone can read
+    // Vendor docs use addDoc (auto-ID), so doc ID != auth UID.
+    // Check ownerId field in Firestore to validate ownership.
+    function isVendorOwner(vendorId) {
+      return request.auth != null && (
+        request.auth.uid == vendorId ||
+        firestore.get(/databases/(default)/documents/vendors/$(vendorId)).data.ownerId == request.auth.uid
+      );
+    }
+
+    // Product images — vendor owner only; public read
     match /products/{vendorId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null
-                   && request.auth.uid == vendorId
+      allow write: if isVendorOwner(vendorId)
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Store catalog assets (banner, logo) — vendor owner only; public read
+    match /catalogs/{vendorId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isVendorOwner(vendorId)
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }

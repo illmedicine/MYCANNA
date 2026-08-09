@@ -1,22 +1,33 @@
 import {
-  doc, collection, addDoc, getDoc, getDocs, setDoc, updateDoc,
+  doc, collection, addDoc, getDoc, getDocs, setDoc, updateDoc, arrayUnion,
   deleteDoc, query, where, orderBy, serverTimestamp, limit,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 
-export async function registerVendor(uid, data) {
-  const ref = doc(db, "vendors", uid);
-  await setDoc(ref, {
+export function toVendorSlug(name) {
+  return (name || "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+}
+
+export async function ensureVendorSlug(vendorId, storeName) {
+  const slug = toVendorSlug(storeName);
+  await updateDoc(doc(db, "vendors", vendorId), { catalogSlug: slug });
+  return slug;
+}
+
+export async function registerVendor(uid, email, data) {
+  const docRef = await addDoc(collection(db, "vendors"), {
     ...data,
     ownerId: uid,
+    ownerEmails: [email],
+    catalogSlug: toVendorSlug(data.storeName),
     region: "WNY",
     status: "pending_verification",
     tier: "free",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  return uid;
+  return docRef.id;
 }
 
 export async function getVendor(vendorId) {
@@ -70,6 +81,32 @@ export async function getVendorByOwner(uid) {
   const snap = await getDocs(q);
   if (snap.empty) return null;
   return { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+// Returns ALL stores the user owns or co-owns (by UID or by email)
+export async function getVendorsByUser(uid, email) {
+  const [byOwner, byEmail] = await Promise.all([
+    getDocs(query(collection(db, "vendors"), where("ownerId", "==", uid))),
+    email
+      ? getDocs(query(collection(db, "vendors"), where("ownerEmails", "array-contains", email)))
+      : Promise.resolve({ docs: [] }),
+  ]);
+  const seen = new Set();
+  const results = [];
+  for (const snap of [...byOwner.docs, ...byEmail.docs]) {
+    if (!seen.has(snap.id)) {
+      seen.add(snap.id);
+      results.push({ id: snap.id, ...snap.data() });
+    }
+  }
+  return results;
+}
+
+export async function addVendorCoOwner(vendorId, email) {
+  await updateDoc(doc(db, "vendors", vendorId), {
+    ownerEmails: arrayUnion(email.toLowerCase().trim()),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function updateVendorProfile(vendorId, data) {

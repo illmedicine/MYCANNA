@@ -7,6 +7,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+        // Always fetch HTML documents from the network so new deploys
+        // show up immediately instead of serving stale cached index.html.
+        runtimeCaching: [{
+          urlPattern: ({ request }) => request.mode === 'navigate',
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'navigations',
+            networkTimeoutSeconds: 4,
+          },
+        }],
+      },
       manifest: {
         name: 'Mycana – Cannabis Profile',
         short_name: 'Mycana',

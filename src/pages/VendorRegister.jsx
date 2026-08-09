@@ -106,7 +106,7 @@ export default function VendorRegister() {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      await registerVendor(user.id, { ...form, tier: selectedTier });
+      await registerVendor(user.id, user.email, { ...form, tier: selectedTier });
       setStep(3);
     } catch (err) {
       console.error("Vendor registration failed", err);

@@ -217,6 +217,7 @@ export default function Assessment() {
             <p className="assessment__question-desc">{q.description}</p>
             <div className="assessment__slider-wrap">
               <BiSlider
+                key={q.id}
                 {...q}
                 value={answers[q.id]}
                 onChange={(v) => setAnswers((prev) => ({ ...prev, [q.id]: v }))}
