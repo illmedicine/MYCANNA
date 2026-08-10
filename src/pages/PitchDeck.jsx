@@ -132,47 +132,51 @@ function PlushFigure({ x = 0, y = 0, scale = 1, style = {}, className = "" }) {
   );
 }
 
-// ── Variant plush figure (skin, bald, beardStyle, glasses, cap, slim, logoPatch) ─
+// ── Variant plush figure (topColor, bottomColor, beardStyle, glasses, cap, showPatch) ─
 function PlushFigureVariant({
   x = 0, y = 0, scale = 1, style = {},
   skinTone = "light", bald = false,
   beardStyle = "none", glasses = false, cap = "none",
-  slim = false, logoPatch = null,
+  slim = false, showPatch = false,
+  topColor = "#3d6b4a", bottomColor = "#3d6b4a",
 }) {
   const felt = skinTone === "dark" ? "#8B5430" : "#e8d5b8";
-  const clothing = "#3d6b4a";
   const stitch = "#9b7d5a";
   const hair = "#3a2810";
   const armRx = slim ? 12 : 15;
   const armRy = slim ? 40 : 44;
+  const topPat = topColor === "#3d6b4a" ? "url(#pd-green)" : "url(#pd-cream)";
+  const botPat = bottomColor === "#3d6b4a" ? "url(#pd-green)" : "url(#pd-cream)";
   const torsoPath = slim
     ? "M72 100 C62 120 64 145 70 168 C73 188 80 204 85 208 L115 208 C120 204 127 188 130 168 C136 145 138 120 128 100 Z"
     : "M68 100 C55 120 57 145 65 168 C68 188 76 204 82 208 L118 208 C124 204 132 188 135 168 C143 145 145 120 132 100 Z";
+  const patchBg   = topColor !== "#3d6b4a" ? "#3d6b4a" : "#F5EDD8";
+  const patchIcon = topColor !== "#3d6b4a" ? "rgba(255,255,255,.9)" : "#2E6B47";
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`} style={style}>
       {/* Arms */}
-      <ellipse cx={47} cy={148} rx={armRx} ry={armRy} fill={clothing}
+      <ellipse cx={47} cy={148} rx={armRx} ry={armRy} fill={topColor}
         transform="rotate(-12 47 148)" filter="url(#pd-shadow-sm)"/>
-      <ellipse cx={47} cy={148} rx={armRx} ry={armRy} fill="url(#pd-green)"
+      <ellipse cx={47} cy={148} rx={armRx} ry={armRy} fill={topPat}
         transform="rotate(-12 47 148)"/>
       <ellipse cx={36} cy={190} rx={13} ry={11} fill={felt}/>
       <ellipse cx={36} cy={190} rx={13} ry={11} fill="url(#pd-cream)"/>
-      <ellipse cx={153} cy={148} rx={armRx} ry={armRy} fill={clothing}
+      <ellipse cx={153} cy={148} rx={armRx} ry={armRy} fill={topColor}
         transform="rotate(12 153 148)" filter="url(#pd-shadow-sm)"/>
-      <ellipse cx={153} cy={148} rx={armRx} ry={armRy} fill="url(#pd-green)"
+      <ellipse cx={153} cy={148} rx={armRx} ry={armRy} fill={topPat}
         transform="rotate(12 153 148)"/>
       <ellipse cx={164} cy={190} rx={13} ry={11} fill={felt}/>
       <ellipse cx={164} cy={190} rx={13} ry={11} fill="url(#pd-cream)"/>
       {/* Torso */}
-      <path d={torsoPath} fill={clothing} filter="url(#pd-shadow)"/>
-      <path d={torsoPath} fill="url(#pd-green)"/>
+      <path d={torsoPath} fill={topColor} filter="url(#pd-shadow)"/>
+      <path d={torsoPath} fill={topPat}/>
       <line x1="100" y1="100" x2="100" y2="206"
         stroke={stitch} strokeWidth="1.1" strokeDasharray="4 3" opacity=".45"/>
       {/* Legs */}
-      <rect x="74" y="202" width="24" height="58" rx="12" fill={clothing}/>
-      <rect x="74" y="202" width="24" height="58" rx="12" fill="url(#pd-green)"/>
-      <rect x="102" y="202" width="24" height="58" rx="12" fill={clothing}/>
-      <rect x="102" y="202" width="24" height="58" rx="12" fill="url(#pd-green)"/>
+      <rect x="74" y="202" width="24" height="58" rx="12" fill={bottomColor}/>
+      <rect x="74" y="202" width="24" height="58" rx="12" fill={botPat}/>
+      <rect x="102" y="202" width="24" height="58" rx="12" fill={bottomColor}/>
+      <rect x="102" y="202" width="24" height="58" rx="12" fill={botPat}/>
       {/* Feet */}
       <ellipse cx="86"  cy="262" rx="17" ry="11" fill={felt}/>
       <ellipse cx="86"  cy="262" rx="17" ry="11" fill="url(#pd-cream)"/>
@@ -223,7 +227,7 @@ function PlushFigureVariant({
             fill={hair} opacity="0.9"/>
         </>
       )}
-      {/* ZZ Top — very long flowing beard past the waist */}
+      {/* ZZ Top — very long flowing beard */}
       {beardStyle === "zztop" && (
         <>
           <path d="M81 56 Q77 82 79 115 Q82 155 85 195 Q90 228 100 248 Q110 228 115 195 Q118 155 121 115 Q123 82 119 56 Q112 63 100 64 Q88 63 81 56Z"
@@ -238,13 +242,19 @@ function PlushFigureVariant({
       {/* Cheeks */}
       <ellipse cx="78" cy="57" rx="9" ry="6" fill="rgba(220,110,80,.18)"/>
       <ellipse cx="122" cy="57" rx="9" ry="6" fill="rgba(220,110,80,.18)"/>
-      {/* Chest logo patch — rendered last so always visible over beard */}
-      {logoPatch && (
-        <>
-          <ellipse cx="100" cy="136" rx="24" ry="15" fill={logoPatch}/>
-          <ellipse cx="100" cy="136" rx="24" ry="15" fill="none" stroke="#C9A84B" strokeWidth="1.8" strokeDasharray="3 2.5" opacity="0.7"/>
-          <text x="100" y="143" textAnchor="middle" fontSize="15" fill="#2E6B47" fontWeight="bold" fontFamily="Georgia,serif">M</text>
-        </>
+      {/* Mycana logo patch — actual favicon plant paths, always rendered on top */}
+      {showPatch && (
+        <g transform="translate(82 110) scale(0.818)">
+          <rect x="1.5" y="1.5" width="41" height="41" rx="12" fill={patchBg}/>
+          <rect x="5.5" y="5.5" width="33" height="33" rx="8" fill="none"
+            stroke="rgba(255,255,255,.35)" strokeWidth="1.3" strokeDasharray="4 3"/>
+          <line x1="22" y1="38" x2="22" y2="29.5" stroke={patchIcon} strokeWidth="2.2" strokeLinecap="round"/>
+          <path d="M22 30 C18 22 17 15 22 9 C27 15 26 22 22 30Z" fill={patchIcon}/>
+          <path d="M21 28 C16 23 9 19 10 12 C14 12 18 18 21 24Z" fill={patchIcon} opacity="0.82"/>
+          <path d="M23 28 C28 23 35 19 34 12 C30 12 26 18 23 24Z" fill={patchIcon} opacity="0.82"/>
+          <path d="M21 27 C14 25 7 22 7 16 C11 15 17 20 21 24Z" fill={patchIcon} opacity="0.62"/>
+          <path d="M23 27 C30 25 37 22 37 16 C33 15 27 20 23 24Z" fill={patchIcon} opacity="0.62"/>
+        </g>
       )}
     </g>
   );
@@ -648,25 +658,27 @@ function ScenePlatform() {
         </g>
       </g>
 
-      {/* Founding Team — John (ZZ Top beard, cap, glasses) + DeMarkus (dark/bald/slim) */}
+      {/* Founding Team — centered at x=280 in 560-wide scene */}
       <g style={{ animation: "felt-float 5s 0.8s ease-in-out infinite" }}>
-        {/* Felt backing card */}
-        <rect x={140} y={5} width={148} height={136} rx={10} fill="#F5EDD8" opacity={0.92} filter="url(#pd-shadow)"/>
-        <rect x={140} y={5} width={148} height={136} rx={10} fill="url(#pd-bg)" filter="url(#pd-felt)"/>
-        <rect x={145} y={10} width={138} height={126} rx={7} fill="none" stroke="#C9A84B" strokeWidth="1.5" strokeDasharray="5 3" opacity={0.45}/>
-        {/* Label pill */}
-        <rect x={162} y={7} width={104} height={13} rx={6} fill="#C9A84B" opacity={0.92}/>
-        <text x={214} y={17} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.8">FOUNDING TEAM</text>
-        {/* John Girdlestone — backwards cap, glasses, ZZ Top beard, cream logo patch */}
-        <PlushFigureVariant x={143} y={18} scale={0.38}
-          cap="backwards" glasses={true} beardStyle="zztop" logoPatch="#F5EDD8"/>
-        <text x={181} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">John G.</text>
-        <text x={181} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Visionary Founder</text>
-        {/* DeMarkus Wilson — brown skin, bald, slim build, cream logo patch */}
-        <PlushFigureVariant x={215} y={18} scale={0.38}
-          skinTone="dark" bald={true} slim={true} logoPatch="#F5EDD8"/>
-        <text x={253} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">DeMarkus W.</text>
-        <text x={253} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Architect Founder</text>
+        {/* Felt backing card — x=190, width=180, center=280 */}
+        <rect x={190} y={5} width={180} height={138} rx={10} fill="#F5EDD8" opacity={0.92} filter="url(#pd-shadow)"/>
+        <rect x={190} y={5} width={180} height={138} rx={10} fill="url(#pd-bg)" filter="url(#pd-felt)"/>
+        <rect x={195} y={10} width={170} height={128} rx={7} fill="none" stroke="#C9A84B" strokeWidth="1.5" strokeDasharray="5 3" opacity={0.45}/>
+        {/* Label pill — centered at x=280 */}
+        <rect x={238} y={7} width={84} height={13} rx={6} fill="#C9A84B" opacity={0.92}/>
+        <text x={280} y={17} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.8">FOUNDING TEAM</text>
+        {/* John Girdlestone — cream top, green pants, cap/glasses/ZZ Top beard */}
+        <PlushFigureVariant x={207} y={18} scale={0.38}
+          cap="backwards" glasses={true} beardStyle="zztop" showPatch={true}
+          topColor="#EDE3CE" bottomColor="#3d6b4a"/>
+        <text x={245} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">John G.</text>
+        <text x={245} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Visionary Founder</text>
+        {/* DeMarkus Wilson — green top, tan pants, brown skin/bald/slim */}
+        <PlushFigureVariant x={277} y={18} scale={0.38}
+          skinTone="dark" bald={true} slim={true} showPatch={true}
+          topColor="#3d6b4a" bottomColor="#C19A6B"/>
+        <text x={315} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">DeMarkus W.</text>
+        <text x={315} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Architect Founder</text>
       </g>
 
       {/* User network — right side */}
