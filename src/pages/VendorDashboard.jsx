@@ -13,6 +13,7 @@ import {
 } from "../services/catalogService.js";
 import { logActivity } from "../services/activityService.js";
 import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
+import StaffEduTab from "./StaffEduTab.jsx";
 import "./VendorDashboard.css";
 
 function productImage(product) {
@@ -964,6 +965,7 @@ export default function VendorDashboard() {
       ? [{ id: "analytics", label: "📊 Analytics" }]
       : []
     ),
+    ...(vendor.tier === "premium" ? [{ id: "staff-edu", label: "🎓 Staff EDU" }] : []),
   ];
 
   return (
@@ -1157,6 +1159,10 @@ export default function VendorDashboard() {
               </div>
             )}
           </div>
+        )}
+        {/* ── Staff EDU Tab (Premium) ── */}
+        {tab === "staff-edu" && (
+          <StaffEduTab vendor={vendor} />
         )}
       </div>
 
