@@ -658,27 +658,26 @@ function ScenePlatform() {
         </g>
       </g>
 
-      {/* Founding Team — centered at x=280 in 560-wide scene */}
+      {/* Founding Team — dark card floating over lower admin dashboard */}
       <g style={{ animation: "felt-float 5s 0.8s ease-in-out infinite" }}>
-        {/* Felt backing card — x=190, width=180, center=280 */}
-        <rect x={190} y={5} width={180} height={138} rx={10} fill="#F5EDD8" opacity={0.92} filter="url(#pd-shadow)"/>
-        <rect x={190} y={5} width={180} height={138} rx={10} fill="url(#pd-bg)" filter="url(#pd-felt)"/>
-        <rect x={195} y={10} width={170} height={128} rx={7} fill="none" stroke="#C9A84B" strokeWidth="1.5" strokeDasharray="5 3" opacity={0.45}/>
-        {/* Label pill — centered at x=280 */}
-        <rect x={238} y={7} width={84} height={13} rx={6} fill="#C9A84B" opacity={0.92}/>
-        <text x={280} y={17} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.8">FOUNDING TEAM</text>
-        {/* John Girdlestone — cream top, green pants, cap/glasses/ZZ Top beard */}
-        <PlushFigureVariant x={207} y={18} scale={0.38}
+        {/* Deep dark background for clothing contrast — centered at x=150 */}
+        <rect x={55} y={145} width={190} height={145} rx={10} fill="#0D1F12" opacity={0.97} filter="url(#pd-shadow)"/>
+        <rect x={60} y={150} width={180} height={135} rx={7} fill="none" stroke="#C9A84B" strokeWidth="1.5" strokeDasharray="5 3" opacity={0.55}/>
+        {/* Label pill — centered at x=150 */}
+        <rect x={108} y={147} width={84} height={13} rx={6} fill="#C9A84B" opacity={0.92}/>
+        <text x={150} y={157} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold" letterSpacing="0.8">FOUNDING TEAM</text>
+        {/* John Girdlestone — cream top, green pants */}
+        <PlushFigureVariant x={72} y={162} scale={0.38}
           cap="backwards" glasses={true} beardStyle="zztop" showPatch={true}
           topColor="#EDE3CE" bottomColor="#3d6b4a"/>
-        <text x={245} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">John G.</text>
-        <text x={245} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Visionary Founder</text>
-        {/* DeMarkus Wilson — green top, tan pants, brown skin/bald/slim */}
-        <PlushFigureVariant x={277} y={18} scale={0.38}
+        <text x={110} y={270} textAnchor="middle" fontSize="6" fill="#F5EDD8" fontWeight="bold">John G.</text>
+        <text x={110} y={278} textAnchor="middle" fontSize="5" fill="#C9A84B">Visionary Founder</text>
+        {/* DeMarkus Wilson — green top, tan pants */}
+        <PlushFigureVariant x={152} y={162} scale={0.38}
           skinTone="dark" bald={true} slim={true} showPatch={true}
           topColor="#3d6b4a" bottomColor="#C19A6B"/>
-        <text x={315} y={126} textAnchor="middle" fontSize="6" fill="#1A3D2B" fontWeight="bold">DeMarkus W.</text>
-        <text x={315} y={134} textAnchor="middle" fontSize="5" fill="#8B6914">Architect Founder</text>
+        <text x={190} y={270} textAnchor="middle" fontSize="6" fill="#F5EDD8" fontWeight="bold">DeMarkus W.</text>
+        <text x={190} y={278} textAnchor="middle" fontSize="5" fill="#C9A84B">Architect Founder</text>
       </g>
 
       {/* User network — right side */}
