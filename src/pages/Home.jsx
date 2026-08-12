@@ -414,8 +414,7 @@ export default function Home() {
       <footer className="footer">
         <p>© 2025 Mycana · For educational purposes only · Not medical advice</p>
         <p style={{ marginTop: '8px', fontSize: '.72rem', opacity: '.5' }}>
-          <Link to="/investors" style={{ color: 'inherit', textDecoration: 'underline' }}>Investor Overview</Link>
-          {' · '}<Link to="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>Privacy Policy</Link>
+          <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>Privacy Policy</Link>
           {' · '}A product of <a href="https://www.illyrobotic-ai.com" style={{ color: 'inherit', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Illy Robotic Instruments</a>
         </p>
         {['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'jcgstone@gmail.com', 'demarkuswilsone@gmail.com'].includes(user?.email) ? (
