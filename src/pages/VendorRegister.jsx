@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { registerVendor } from "../services/vendorService.js";
 import PayPalButton, { PAYPAL_BUTTONS } from "../components/PayPalButton.jsx";
@@ -36,11 +36,15 @@ const NY_LICENSE_PATTERN = /^[A-Z0-9\-]{5,30}$/i;
 export default function VendorRegister() {
   const { user, signIn, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // All hooks must be declared before any conditional returns
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [selectedTier, setSelectedTier] = useState("free");
+  const [selectedTier, setSelectedTier] = useState(() => {
+    const t = searchParams.get("tier");
+    return ["standard", "premium"].includes(t) ? t : "free";
+  });
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     storeName: "",

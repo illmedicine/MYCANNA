@@ -99,6 +99,7 @@ const VENDOR_TIERS = [
     color: '#64748b',
     featured: false,
     cta: 'List My Store Free',
+    route: '/vendor/register',
     features: [
       { text: 'Store profile page',          yes: true  },
       { text: 'Up to 10 products',           yes: true  },
@@ -121,6 +122,7 @@ const VENDOR_TIERS = [
     color: '#d4a843',
     featured: false,
     cta: 'Start Standard',
+    route: '/vendor/register?tier=standard',
     features: [
       { text: 'Store profile page',          yes: true  },
       { text: 'Unlimited products',          yes: true  },
@@ -143,6 +145,7 @@ const VENDOR_TIERS = [
     color: '#6d28d9',
     featured: true,
     cta: 'Go Premium',
+    route: '/vendor/register?tier=premium',
     features: [
       { text: 'Store profile page',          yes: true },
       { text: 'Unlimited products',          yes: true },
@@ -381,7 +384,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <Link
-                  to="/vendor"
+                  to={tier.route}
                   className={`btn ${tier.featured ? 'btn--primary' : 'btn--outline'} btn--sm`}
                   style={{ textAlign: 'center' }}
                 >
