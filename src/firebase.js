@@ -6,7 +6,7 @@ import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD7ZcoMgEyHCyr75CaILdIiFKkBw4JBn5I",
-  authDomain: "mycanna-b2284.firebaseapp.com",
+  authDomain: "mycana-b2284.firebaseapp.com",
   projectId: "mycanna-b2284",
   storageBucket: "mycanna-b2284.firebasestorage.app",
   messagingSenderId: "1047328169849",

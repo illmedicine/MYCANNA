@@ -1,20 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  registerStaffMember,
+  getStaffMembers,
+  updateStaffProgress,
+} from "../services/staffService.js";
+import { logActivity } from "../services/activityService.js";
 import "./StaffEduTab.css";
-
-/* ── localStorage helper ─────────────────────────────────────────────────── */
-function useLocalStorage(key, init) {
-  const [val, setVal] = useState(() => {
-    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : init; } catch { return init; }
-  });
-  const set = useCallback(v => {
-    setVal(prev => {
-      const next = typeof v === "function" ? v(prev) : v;
-      localStorage.setItem(key, JSON.stringify(next));
-      return next;
-    });
-  }, [key]);
-  return [val, set];
-}
 
 /* ── Gamification levels ─────────────────────────────────────────────────── */
 const EDU_LEVELS = [
@@ -33,6 +24,20 @@ function getEduLevel(xp) {
 function nextLevel(xp) {
   const idx = EDU_LEVELS.findIndex(l => xp < l.min);
   return idx === -1 ? null : EDU_LEVELS[idx];
+}
+
+function formatJoined(ts) {
+  if (!ts) return "Recently";
+  let d;
+  if (ts.toDate) d = ts.toDate();
+  else if (ts.seconds) d = new Date(ts.seconds * 1000);
+  else d = new Date(ts);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 86400) return "Today";
+  if (diff < 172800) return "Yesterday";
+  if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 604800)} week${Math.floor(diff / 604800) > 1 ? "s" : ""} ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 /* ── Curriculum data ─────────────────────────────────────────────────────── */
@@ -380,37 +385,63 @@ const SIDEQUESTS = [
   },
 ];
 
-/* ── Demo staff roster ────────────────────────────────────────────────────── */
-const DEMO_STAFF = [
-  { name: "Alex Rivera",   xp: 1150, completed: 7, certified: false, joined: "2 weeks ago" },
-  { name: "Jordan Kim",    xp: 1500, completed: 8, certified: true,  joined: "1 month ago" },
-  { name: "Taylor Brooks", xp: 650,  completed: 5, certified: false, joined: "3 weeks ago" },
-  { name: "Morgan Lee",    xp: 225,  completed: 2, certified: false, joined: "5 days ago" },
-];
-
-/* ── XP helpers ──────────────────────────────────────────────────────────── */
 const CERT_REQUIRED = { modules: 8, sidequests: 2 };
 
 /* ════════════════════════════════════════════════════════════════════════════
    STAFF EDU TAB — Main component
+   Props:
+     vendor    — vendor object { id, storeName, ... }
+     userId    — Firebase UID of the current user
+     userName  — Display name from Google account
+     isOwner   — true when rendered inside VendorDashboard (grants manage access)
    ════════════════════════════════════════════════════════════════════════════ */
-export default function StaffEduTab({ vendor }) {
-  const storageKey = `mycana-edu-${vendor.id}`;
-  const [progress, setProgress] = useLocalStorage(storageKey, {
-    xp: 0,
-    completedModules: [],
-    quizScores: {},
-    completedSidequests: [],
-    staffName: "",
-    certEarned: false,
-  });
-
-  const [view, setView]           = useState("hub");  // hub|module|sidequest|manage|cert
+export default function StaffEduTab({ vendor, userId, userName, isOwner = false }) {
+  const [progress, setProgressLocal] = useState(null); // null = loading
+  const [view, setView]           = useState("hub");
   const [activeId, setActiveId]   = useState(null);
-  const [quizState, setQuizState] = useState(null);   // { picks, submitted, score }
-  const [sqState, setSqState]     = useState(null);   // { picks, submitted, score }
-  const [nameInput, setNameInput] = useState("");
+  const [quizState, setQuizState] = useState(null);
+  const [sqState, setSqState]     = useState(null);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [staffList, setStaffList] = useState(null);
+  const [loadingStaff, setLoadingStaff] = useState(false);
+
+  /* ── Load / register progress from Firestore on mount ── */
+  useEffect(() => {
+    if (!userId || !vendor?.id) return;
+    registerStaffMember(vendor.id, { id: userId, name: userName || "Staff Member" })
+      .then(data => {
+        setProgressLocal({
+          xp: data.xp ?? 0,
+          completedModules: data.completedModules ?? [],
+          quizScores: data.quizScores ?? {},
+          completedSidequests: data.completedSidequests ?? [],
+          certEarned: data.certEarned ?? false,
+        });
+      })
+      .catch(() => {
+        setProgressLocal({ xp: 0, completedModules: [], quizScores: {}, completedSidequests: [], certEarned: false });
+      });
+  }, [userId, vendor?.id]);
+
+  /* ── Optimistic-update + async Firestore write ── */
+  const saveProgress = useCallback(async (updates) => {
+    setProgressLocal(p => ({ ...p, ...updates }));
+    try {
+      await updateStaffProgress(vendor.id, userId, updates);
+    } catch (err) {
+      console.error("Progress save failed:", err);
+    }
+  }, [vendor.id, userId]);
+
+  /* ── Loading state ── */
+  if (progress === null) {
+    return (
+      <div className="edu-loading">
+        <div className="edu-loading__spinner">🌿</div>
+        <p>Loading your training progress…</p>
+      </div>
+    );
+  }
 
   const level   = getEduLevel(progress.xp);
   const nextLvl = nextLevel(progress.xp);
@@ -419,37 +450,9 @@ export default function StaffEduTab({ vendor }) {
   const pctToNext = nextLvl
     ? Math.round(((progress.xp - level.min) / (nextLvl.min - level.min)) * 100)
     : 100;
+  const firstName = (userName || "there").split(" ")[0];
 
-  /* ── name gate ── */
-  if (!progress.staffName) {
-    return (
-      <div className="edu-name-gate">
-        <div className="edu-name-gate__card">
-          <div className="edu-name-gate__icon">🎓</div>
-          <h2 className="edu-name-gate__title">Welcome to Staff EDU</h2>
-          <p className="edu-name-gate__sub">
-            Your personalized cannabis training portal. Enter your name to begin — your progress is saved automatically.
-          </p>
-          <input
-            className="edu-name-gate__input"
-            placeholder="Your first and last name"
-            value={nameInput}
-            onChange={e => setNameInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && nameInput.trim()) setProgress(p => ({ ...p, staffName: nameInput.trim() })); }}
-          />
-          <button
-            className="btn btn--primary"
-            disabled={!nameInput.trim()}
-            onClick={() => setProgress(p => ({ ...p, staffName: nameInput.trim() }))}
-          >
-            Start Training →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── helpers ── */
+  /* ── Helpers ── */
   const openModule = (id) => {
     setActiveId(id);
     const m = MODULES.find(x => x.id === id);
@@ -464,6 +467,21 @@ export default function StaffEduTab({ vendor }) {
     setView("sidequest");
   };
 
+  const openManage = async () => {
+    setView("manage");
+    if (staffList === null && !loadingStaff) {
+      setLoadingStaff(true);
+      try {
+        const members = await getStaffMembers(vendor.id);
+        setStaffList(members.sort((a, b) => (b.xp ?? 0) - (a.xp ?? 0)));
+      } catch {
+        setStaffList([]);
+      } finally {
+        setLoadingStaff(false);
+      }
+    }
+  };
+
   const submitQuiz = () => {
     const m = MODULES.find(x => x.id === activeId);
     const score = quizState.picks.filter((p, i) => p === m.quiz[i].a).length;
@@ -473,16 +491,22 @@ export default function StaffEduTab({ vendor }) {
     let gained = 0;
     if (passed && !alreadyDone) {
       gained += m.xp;
-      if (score === m.quiz.length) gained += 50; // perfect bonus
+      if (score === m.quiz.length) gained += 50;
     }
     setQuizState(q => ({ ...q, submitted: true, score: pct, passed, gained }));
     if (passed && !alreadyDone) {
-      setProgress(p => ({
-        ...p,
-        xp: p.xp + gained,
-        completedModules: [...p.completedModules, activeId],
-        quizScores: { ...p.quizScores, [activeId]: pct },
-      }));
+      const newModules = [...progress.completedModules, activeId];
+      const justCertified = !progress.certEarned
+        && newModules.length >= CERT_REQUIRED.modules
+        && progress.completedSidequests.length >= CERT_REQUIRED.sidequests;
+      saveProgress({
+        xp: progress.xp + gained,
+        completedModules: newModules,
+        quizScores: { ...progress.quizScores, [activeId]: pct },
+        ...(justCertified ? { certEarned: true } : {}),
+      });
+      logActivity("module_completed", { storeName: vendor.storeName, moduleName: m.title });
+      if (justCertified) logActivity("staff_certified", { storeName: vendor.storeName });
     }
   };
 
@@ -494,16 +518,22 @@ export default function StaffEduTab({ vendor }) {
     const gained = (passed && !alreadyDone) ? sq.xp : 0;
     setSqState(s => ({ ...s, submitted: true, score: correct, passed, gained }));
     if (passed && !alreadyDone) {
-      setProgress(p => ({
-        ...p,
-        xp: p.xp + gained,
-        completedSidequests: [...p.completedSidequests, activeId],
-      }));
+      const newSidequests = [...progress.completedSidequests, activeId];
+      const justCertified = !progress.certEarned
+        && progress.completedModules.length >= CERT_REQUIRED.modules
+        && newSidequests.length >= CERT_REQUIRED.sidequests;
+      saveProgress({
+        xp: progress.xp + gained,
+        completedSidequests: newSidequests,
+        ...(justCertified ? { certEarned: true } : {}),
+      });
+      logActivity("sidequest_completed", { storeName: vendor.storeName, sidequestTitle: sq.title });
+      if (justCertified) logActivity("staff_certified", { storeName: vendor.storeName });
     }
   };
 
   const copyInviteLink = () => {
-    const url = `${window.location.origin}/vendor/dashboard?store=${vendor.id}&mode=staff-edu`;
+    const url = `${window.location.origin}/staff-edu/${vendor.catalogSlug}`;
     navigator.clipboard.writeText(url);
     setInviteCopied(true);
     setTimeout(() => setInviteCopied(false), 2500);
@@ -528,7 +558,6 @@ export default function StaffEduTab({ vendor }) {
           <div className="edu-module-header__xp" style={{ color: m.color }}>+{m.xp} XP</div>
         </div>
 
-        {/* Content sections */}
         {m.sections.map((s, i) => (
           <div key={i} className="edu-section">
             <h3 className="edu-section__heading">{s.heading}</h3>
@@ -540,7 +569,6 @@ export default function StaffEduTab({ vendor }) {
           </div>
         ))}
 
-        {/* Quiz */}
         <div className="edu-quiz">
           <h3 className="edu-quiz__title">📝 Module Quiz</h3>
           <p className="edu-quiz__sub">Score 75% or higher to complete this module and earn {m.xp} XP.</p>
@@ -624,7 +652,6 @@ export default function StaffEduTab({ vendor }) {
           <div className="edu-module-header__xp" style={{ color: "#d4a843" }}>+{sq.xp} XP</div>
         </div>
 
-        {/* COA display for coa-decoder */}
         {sq.coa && (
           <div className="edu-coa">
             <div className="edu-coa__header">Certificate of Analysis</div>
@@ -706,7 +733,7 @@ export default function StaffEduTab({ vendor }) {
         <div className="edu-cert-card">
           <div className="edu-cert-card__badge">⭐</div>
           <div className="edu-cert-card__eyebrow">Certificate of Completion</div>
-          <h2 className="edu-cert-card__name">{progress.staffName}</h2>
+          <h2 className="edu-cert-card__name">{userName || "Staff Member"}</h2>
           <div className="edu-cert-card__title">Mycana Certified Budtender</div>
           <div className="edu-cert-card__store">Certified at {vendor.storeName}</div>
           <div className="edu-cert-card__details">
@@ -730,23 +757,26 @@ export default function StaffEduTab({ vendor }) {
     );
   }
 
-  /* Manage Staff view */
-  if (view === "manage") {
+  /* Manage Staff view — owners only */
+  if (view === "manage" && isOwner) {
+    const roster = staffList ?? [];
     return (
       <div className="edu-manage-view">
         <button className="edu-back" onClick={() => setView("hub")}>← Back to Hub</button>
         <h2 className="edu-section-title">Staff Management</h2>
         <p style={{ color: "var(--c-text-muted)", marginBottom: 24 }}>
-          Invite your budtender team to the Staff EDU portal. Each staff member's progress is tracked and shown in the leaderboard below.
+          Invite your budtender team to the Staff EDU portal. Each staff member logs in with their Google account and is added to your roster automatically.
         </p>
 
         {/* Invite link */}
         <div className="edu-invite-card">
           <div className="edu-invite-card__label">📨 Staff Invite Link</div>
-          <p className="edu-invite-card__desc">Share this link with your staff. They'll enter their name and begin training immediately — no separate account required.</p>
+          <p className="edu-invite-card__desc">
+            Share this link with your staff. They sign in with Google, are automatically added to your roster, and begin training immediately.
+          </p>
           <div className="edu-invite-card__row">
             <code className="edu-invite-card__url">
-              {`${window.location.origin}/vendor/dashboard?store=${vendor.id}&mode=staff-edu`}
+              {`${window.location.origin}/staff-edu/${vendor.catalogSlug}`}
             </code>
             <button className={`btn btn--sm ${inviteCopied ? "btn--outline" : "btn--primary"}`} onClick={copyInviteLink}>
               {inviteCopied ? "✓ Copied!" : "Copy Link"}
@@ -756,29 +786,41 @@ export default function StaffEduTab({ vendor }) {
 
         {/* Staff roster */}
         <h3 className="edu-subsection-title">Staff Leaderboard</h3>
-        <div className="edu-roster">
-          {DEMO_STAFF.map((s, i) => {
-            const lvl = getEduLevel(s.xp);
-            return (
-              <div key={i} className="edu-roster__row">
-                <div className="edu-roster__rank">#{i + 1}</div>
-                <div className="edu-roster__info">
-                  <div className="edu-roster__name">
-                    {s.name}
-                    {s.certified && <span className="edu-roster__cert">⭐ Certified</span>}
+        {loadingStaff ? (
+          <div className="edu-roster-loading">Loading staff roster…</div>
+        ) : roster.length === 0 ? (
+          <div className="edu-roster-empty">
+            <p>No staff enrolled yet. Share the invite link above to get started.</p>
+          </div>
+        ) : (
+          <div className="edu-roster">
+            {roster.map((s, i) => {
+              const lvl = getEduLevel(s.xp ?? 0);
+              const modules = (s.completedModules ?? []).length;
+              const cert = s.certEarned || (modules >= 8 && (s.completedSidequests ?? []).length >= 2);
+              return (
+                <div key={s.id} className="edu-roster__row">
+                  <div className="edu-roster__rank">#{i + 1}</div>
+                  <div className="edu-roster__info">
+                    <div className="edu-roster__name">
+                      {s.name || s.email || "Staff Member"}
+                      {cert && <span className="edu-roster__cert">⭐ Certified</span>}
+                    </div>
+                    <div className="edu-roster__meta">
+                      {modules}/8 modules · Joined {formatJoined(s.joinedAt)}
+                    </div>
                   </div>
-                  <div className="edu-roster__meta">{s.completed}/8 modules · Joined {s.joined}</div>
+                  <div className="edu-roster__right">
+                    <span className="edu-roster__level" style={{ color: lvl.color }}>{lvl.emoji} {lvl.label}</span>
+                    <span className="edu-roster__xp">{(s.xp ?? 0).toLocaleString()} XP</span>
+                  </div>
                 </div>
-                <div className="edu-roster__right">
-                  <span className="edu-roster__level" style={{ color: lvl.color }}>{lvl.emoji} {lvl.label}</span>
-                  <span className="edu-roster__xp">{s.xp.toLocaleString()} XP</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
         <p className="edu-manage-note">
-          ℹ️ Staff roster syncs as team members complete modules. Certified staff are automatically highlighted in the vendor analytics dashboard.
+          ℹ️ Certified staff are automatically highlighted. Progress updates live as staff complete modules.
         </p>
       </div>
     );
@@ -790,7 +832,7 @@ export default function StaffEduTab({ vendor }) {
       {/* Progress header */}
       <div className="edu-progress-bar">
         <div className="edu-progress-bar__left">
-          <span className="edu-progress-bar__greeting">Welcome back, {progress.staffName.split(" ")[0]} 👋</span>
+          <span className="edu-progress-bar__greeting">Welcome back, {firstName} 👋</span>
           <div className="edu-progress-bar__level" style={{ color: level.color }}>
             {level.emoji} {level.label}
           </div>
@@ -812,7 +854,9 @@ export default function StaffEduTab({ vendor }) {
       {/* Nav tabs */}
       <div className="edu-nav">
         <button className="edu-nav__btn edu-nav__btn--active">📚 Training Hub</button>
-        <button className="edu-nav__btn" onClick={() => setView("manage")}>👥 Manage Staff</button>
+        {isOwner && (
+          <button className="edu-nav__btn" onClick={openManage}>👥 Manage Staff</button>
+        )}
         {certified && (
           <button className="edu-nav__btn edu-nav__btn--gold" onClick={() => setView("cert")}>⭐ My Certificate</button>
         )}
@@ -842,7 +886,7 @@ export default function StaffEduTab({ vendor }) {
       {/* Module grid */}
       <h3 className="edu-section-label">🌱 The 8 Mycana Cannabis Factors</h3>
       <div className="edu-module-grid">
-        {MODULES.map((m, i) => {
+        {MODULES.map((m) => {
           const done = progress.completedModules.includes(m.id);
           const score = progress.quizScores[m.id];
           return (

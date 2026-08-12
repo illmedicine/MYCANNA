@@ -1,0 +1,134 @@
+.sp-loading {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--c-text-muted);
+  font-size: 0.95rem;
+}
+.sp-loading__spinner {
+  font-size: 48px;
+  display: inline-block;
+  animation: sp-spin 2s linear infinite;
+}
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+
+/* ── Invite / auth gate ───────────────────────────────────────────── */
+.sp-gate {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.sp-gate__card {
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+}
+.sp-gate__logo { font-size: 52px; margin-bottom: 4px; }
+.sp-gate__brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-primary);
+  margin: 0 0 20px;
+}
+.sp-gate__store {
+  font-size: 0.975rem;
+  color: var(--c-text);
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+.sp-gate__store strong { color: var(--c-primary); }
+.sp-gate__desc {
+  font-size: 0.85rem;
+  color: var(--c-text-muted);
+  margin: 0 0 28px;
+  line-height: 1.6;
+}
+.sp-gate__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+.sp-gate__btn:hover:not(:disabled) { opacity: 0.88; }
+.sp-gate__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.sp-gate__note {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+  margin: 18px 0 0;
+}
+
+/* ── Error state ─────────────────────────────────────────────────── */
+.sp-error {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.sp-error__card {
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 400px;
+  text-align: center;
+}
+.sp-error__icon { font-size: 40px; margin-bottom: 12px; }
+.sp-error__card h2 { margin: 0 0 12px; color: var(--c-text); }
+.sp-error__card p { color: var(--c-text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+/* ── Portal wrapper (post-auth) ──────────────────────────────────── */
+.sp-wrap { min-height: 100vh; }
+
+.sp-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  background: var(--c-bg-card);
+  border-bottom: 1px solid var(--c-border);
+}
+.sp-banner__store {
+  font-weight: 700;
+  color: var(--c-text);
+  font-size: 0.95rem;
+}
+.sp-banner__badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--c-primary);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.sp-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+@media (max-width: 480px) {
+  .sp-gate__card { padding: 36px 24px; }
+}

@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import QRCode from "qrcode";
 import { useAuth } from "../auth/AuthContext.jsx";
 import {
   getVendorsByUser, getVendorProducts, addProduct,
   updateProduct, deleteProduct, uploadProductImage, updateVendorProfile,
-  ensureVendorSlug, toVendorSlug,
+  ensureVendorSlug, toVendorSlug, clearCelebration,
 } from "../services/vendorService.js";
 import {
   updateCatalogSettings, uploadCatalogBanner,
@@ -825,16 +825,212 @@ function CatalogManagerTab({ vendor, products, onVendorUpdate, onProductsUpdate 
   );
 }
 
+/* ── Celebration Overlay ────────────────────────────────────────── */
+const TIER_UNLOCKS = {
+  standard: [
+    "Unlimited product listings",
+    "Profile-matched customer ranking",
+    "Deals & menu features",
+    "Analytics dashboard",
+  ],
+  premium: [
+    "Unlimited product listings",
+    "Featured placement in search",
+    "Store Catalog & B2B Supplier Portal",
+    "Full analytics suite",
+    "Staff EDU training program",
+    "Priority support",
+  ],
+};
+
+function CelebrationOverlay({ tier, storeName, onDismiss }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    // Fanfare via Web Audio API
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [261.6, 329.6, 392, 523.3];
+      notes.forEach((freq, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const t = ac.currentTime + i * 0.18;
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc.start(t);
+        osc.stop(t + 0.55);
+      });
+    } catch {}
+
+    // Confetti canvas
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+    const COLORS = ["#FFD700","#FF6B6B","#4ECDC4","#45B7D1","#FFEAA7","#DDA0DD","#98FB98","#FFA07A"];
+    const particles = Array.from({ length: 180 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -30 - Math.random() * 200,
+      w: Math.random() * 12 + 5,
+      h: Math.random() * 7 + 3,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      vy: Math.random() * 3 + 2,
+      vx: (Math.random() - 0.5) * 4,
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 8,
+    }));
+    let raf;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = 0;
+      particles.forEach((p) => {
+        p.y += p.vy;
+        p.x += p.vx;
+        p.rot += p.rotV;
+        if (p.y < canvas.height) alive++;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      if (alive > 0) raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div className="celeb-overlay">
+      <canvas ref={canvasRef} className="celeb-canvas" />
+      <div className="celeb-modal">
+        <div className="celeb-modal__emoji">{tier === "premium" ? "⭐" : "🌟"}</div>
+        <h2 className="celeb-modal__title">
+          {tier === "premium" ? "Welcome to Premium!" : "Welcome to Standard!"}
+        </h2>
+        <p className="celeb-modal__store">{storeName} is now a Mycana member.</p>
+        <div className="celeb-modal__list">
+          <div className="celeb-modal__list-label">✨ You've unlocked:</div>
+          {(TIER_UNLOCKS[tier] || []).map((f) => (
+            <div key={f} className="celeb-modal__feature">✓ {f}</div>
+          ))}
+        </div>
+        <button className="btn btn--primary celeb-modal__cta" onClick={onDismiss}>
+          Let's Go! →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── B2B Supplier Portal Tab (Premium) ──────────────────────────── */
+function B2BPortalTab({ vendor }) {
+  const CATEGORIES = ["Flower", "Pre-Rolls", "Edibles", "Concentrates", "Vapes", "Accessories"];
+  const [selected, setSelected] = useState(null);
+  const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({ quantity: "", notes: "" });
+
+  const handleInquiry = () => {
+    logActivity("b2b_inquiry", { storeName: vendor.storeName, category: selected });
+    setSent(true);
+  };
+
+  return (
+    <div className="b2b-portal">
+      <div className="b2b-portal__header">
+        <div className="b2b-portal__badge">⭐ Premium Feature</div>
+        <h2 className="vd-section-title">B2B Supplier Portal</h2>
+        <p className="b2b-portal__sub">
+          Connect with licensed NY cannabis suppliers and wholesalers. Browse by category,
+          submit inquiries, and manage your inbound quotes — all in one place.
+        </p>
+      </div>
+
+      {!sent ? (
+        <>
+          <div className="b2b-portal__section-label">Browse by Category</div>
+          <div className="b2b-portal__categories">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                className={`b2b-cat-card ${selected === c ? "b2b-cat-card--active" : ""}`}
+                onClick={() => setSelected(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          {selected && (
+            <div className="b2b-portal__inquiry">
+              <h3 className="b2b-portal__inquiry-title">Request Wholesale Quotes — {selected}</h3>
+              <p className="b2b-portal__inquiry-sub">
+                Your inquiry will be sent to all verified {selected.toLowerCase()} suppliers
+                in the Mycana network. They'll reach out directly to your store email.
+              </p>
+              <div className="vd-form-group">
+                <label>Estimated Monthly Quantity</label>
+                <input
+                  placeholder="e.g. 50 units, 5 lbs, 200 pre-rolls"
+                  value={form.quantity}
+                  onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
+                />
+              </div>
+              <div className="vd-form-group">
+                <label>Additional Notes</label>
+                <textarea
+                  placeholder="Specific strains, potency ranges, packaging requirements…"
+                  rows={3}
+                  value={form.notes}
+                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+              <button className="btn btn--primary" onClick={handleInquiry} disabled={!form.quantity.trim()}>
+                Send Inquiry to Suppliers
+              </button>
+            </div>
+          )}
+
+          <div className="b2b-portal__coming">
+            <div className="b2b-portal__coming-title">Coming Soon</div>
+            <div className="b2b-portal__coming-items">
+              {["Live supplier catalog with pricing","One-click purchase orders","Order tracking & delivery status","Invoice management"].map((i) => (
+                <div key={i} className="b2b-portal__coming-item">🔜 {i}</div>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="b2b-portal__success">
+          <div className="b2b-portal__success-icon">✅</div>
+          <h3>Inquiry Sent!</h3>
+          <p>Verified {selected} suppliers in the Mycana network will contact {vendor.storeName} at your registered email within 1–2 business days.</p>
+          <button className="btn btn--outline" onClick={() => { setSent(false); setSelected(null); setForm({ quantity: "", notes: "" }); }}>
+            Submit Another Inquiry
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Vendor Dashboard ──────────────────────────────────────── */
 export default function VendorDashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [allVendors, setAllVendors] = useState([]);
-  const [vendor,   setVendor]   = useState(null);
-  const [products, setProducts] = useState([]);
-  const [tab,      setTab]      = useState("products");
-  const [fetching, setFetching] = useState(true);
-  const [modal,    setModal]    = useState(null); // null | "add" | product object
+  const [allVendors,   setAllVendors]   = useState([]);
+  const [vendor,       setVendor]       = useState(null);
+  const [products,     setProducts]     = useState([]);
+  const [tab,          setTab]          = useState("products");
+  const [fetching,     setFetching]     = useState(true);
+  const [modal,        setModal]        = useState(null);
+  const [celebrating,  setCelebrating]  = useState(false);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -851,6 +1047,10 @@ export default function VendorDashboard() {
         if (vendors.length > 0) {
           const v = vendors[0];
           setVendor(v);
+          if (v?.celebrationPending) {
+            setCelebrating(true);
+            clearCelebration(v.id).catch(() => {});
+          }
           if (v?.status === "approved") {
             setProducts(await getVendorProducts(v.id));
           }
@@ -957,15 +1157,16 @@ export default function VendorDashboard() {
     setProducts((p) => p.filter((x) => x.id !== product.id));
   };
 
+  const isPremium  = vendor.tier === "premium";
+  const isPaid     = vendor.tier === "standard" || isPremium;
+
   const TABS = [
-    { id: "products",  label: "🛍️ Products" },
-    { id: "profile",   label: "🏪 Store Profile" },
-    ...(vendor.tier === "premium" ? [{ id: "catalog", label: "📖 Store Catalog" }] : []),
-    ...(vendor.tier === "premium" || vendor.tier === "standard"
-      ? [{ id: "analytics", label: "📊 Analytics" }]
-      : []
-    ),
-    ...(vendor.tier === "premium" ? [{ id: "staff-edu", label: "🎓 Staff EDU" }] : []),
+    { id: "products", label: "🛍️ Products" },
+    { id: "profile",  label: "🏪 Store Profile" },
+    ...(isPaid     ? [{ id: "analytics", label: "📊 Analytics" }] : []),
+    ...(isPremium  ? [{ id: "catalog",   label: "📖 Store Catalog" }] : []),
+    ...(isPremium  ? [{ id: "b2b",       label: "🤝 B2B Portal" }] : []),
+    ...(isPremium  ? [{ id: "staff-edu", label: "🎓 Staff EDU" }] : []),
   ];
 
   return (
@@ -1160,9 +1361,12 @@ export default function VendorDashboard() {
             )}
           </div>
         )}
+        {/* ── B2B Portal Tab (Premium) ── */}
+        {tab === "b2b" && <B2BPortalTab vendor={vendor} />}
+
         {/* ── Staff EDU Tab (Premium) ── */}
         {tab === "staff-edu" && (
-          <StaffEduTab vendor={vendor} />
+          <StaffEduTab vendor={vendor} userId={user.id} userName={user.name} isOwner={true} />
         )}
       </div>
 
@@ -1173,6 +1377,15 @@ export default function VendorDashboard() {
           product={modal === "add" ? null : modal}
           onSave={handleSaveProduct}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {/* ── New Member Celebration ── */}
+      {celebrating && vendor && (
+        <CelebrationOverlay
+          tier={vendor.tier}
+          storeName={vendor.storeName}
+          onDismiss={() => setCelebrating(false)}
         />
       )}
     </div>

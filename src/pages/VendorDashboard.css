@@ -565,3 +565,167 @@
 @media (max-width: 480px) {
   .vd-product-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Celebration Overlay ─────────────────────────────────────────── */
+.celeb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+}
+
+.celeb-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.celeb-modal {
+  position: relative;
+  background: var(--c-bg-card, #fff);
+  border-radius: 20px;
+  padding: 40px 36px;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
+  animation: celeb-pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes celeb-pop {
+  from { transform: scale(.7); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+.celeb-modal__emoji { font-size: 3.5rem; line-height: 1; margin-bottom: 12px; }
+
+.celeb-modal__title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--c-primary, #0d4f2e);
+  margin: 0 0 6px;
+}
+
+.celeb-modal__store {
+  font-size: .95rem;
+  color: var(--c-text-muted, #6b7280);
+  margin: 0 0 20px;
+}
+
+.celeb-modal__list {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .celeb-modal__list { background: rgba(255,255,255,.07); }
+}
+
+.celeb-modal__list-label {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--c-accent, #d4a843);
+  margin-bottom: 10px;
+}
+
+.celeb-modal__feature {
+  font-size: .93rem;
+  padding: 4px 0;
+  color: var(--c-text, #111);
+}
+
+.celeb-modal__cta { width: 100%; }
+
+/* ── B2B Portal Tab ──────────────────────────────────────────────── */
+.b2b-portal { padding: 24px 0; }
+
+.b2b-portal__header { margin-bottom: 28px; }
+
+.b2b-portal__badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #6d28d9, #a855f7);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 99px;
+  margin-bottom: 10px;
+}
+
+.b2b-portal__sub { color: var(--c-text-muted, #6b7280); max-width: 560px; }
+
+.b2b-portal__section-label {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--c-text-muted, #6b7280);
+  margin-bottom: 12px;
+}
+
+.b2b-portal__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.b2b-cat-card {
+  padding: 10px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: var(--c-bg-card, #fff);
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.b2b-cat-card:hover { border-color: #6d28d9; color: #6d28d9; }
+.b2b-cat-card--active { border-color: #6d28d9; background: #6d28d9; color: #fff; }
+
+.b2b-portal__inquiry {
+  background: var(--c-bg-card, #fff);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,.08));
+}
+
+.b2b-portal__inquiry-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; }
+.b2b-portal__inquiry-sub { font-size: .9rem; color: var(--c-text-muted, #6b7280); margin: 0 0 18px; }
+
+.b2b-portal__coming {
+  background: linear-gradient(135deg, rgba(109,40,217,.07), rgba(168,85,247,.05));
+  border: 1px solid rgba(109,40,217,.2);
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.b2b-portal__coming-title {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6d28d9;
+  margin-bottom: 10px;
+}
+
+.b2b-portal__coming-items { display: flex; flex-direction: column; gap: 6px; }
+.b2b-portal__coming-item { font-size: .9rem; color: var(--c-text-muted, #6b7280); }
+
+.b2b-portal__success { text-align: center; padding: 48px 0; }
+.b2b-portal__success-icon { font-size: 3rem; margin-bottom: 16px; }
+.b2b-portal__success h3 { font-size: 1.4rem; margin: 0 0 10px; }
+.b2b-portal__success p { color: var(--c-text-muted, #6b7280); max-width: 420px; margin: 0 auto 24px; }

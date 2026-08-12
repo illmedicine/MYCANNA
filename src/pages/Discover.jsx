@@ -179,7 +179,6 @@ function ProductCard({ product, score, vendorName, onClick }) {
           {product.thcPct != null ? <span className="disc-stat disc-stat--thc">THC {product.thcPct}{product.thcUnit || "%"}</span> : null}
           {product.cbdPct && parseFloat(product.cbdPct) > 0
             ? <span className="disc-stat disc-stat--cbd">CBD {product.cbdPct}%</span> : null}
-          {product.price  ? <span className="disc-stat">${parseFloat(product.price).toFixed(0)}</span> : null}
         </div>
 
         {product.effectDirection && (
@@ -262,7 +261,6 @@ function ProductDetailModal({ product, vendor, userProfile, score, onClose, onLo
             {product.thcPct != null ? <div className="pdm__stat"><span className="pdm__stat-n">{product.thcPct}{product.thcUnit || "%"}</span><span className="pdm__stat-l">THC</span></div> : null}
             {product.cbdPct && parseFloat(product.cbdPct) > 0
               ? <div className="pdm__stat"><span className="pdm__stat-n">{product.cbdPct}%</span><span className="pdm__stat-l">CBD</span></div> : null}
-            {product.price ? <div className="pdm__stat"><span className="pdm__stat-n">${parseFloat(product.price).toFixed(2)}</span><span className="pdm__stat-l">Price</span></div> : null}
             {product.purposeTags ? <div className="pdm__stat"><span className="pdm__stat-n" style={{ fontSize: ".8rem" }}>{product.purposeTags}</span><span className="pdm__stat-l">Purpose</span></div> : null}
           </div>
 
@@ -325,28 +323,54 @@ function ProductDetailModal({ product, vendor, userProfile, score, onClose, onLo
           )}
 
           {/* Store info */}
-          {vendor && (
+          {(vendor || product.supplierBrand === "NY Farm Co") && (
             <div className="pdm__section">
               <div className="pdm__section-title">🏪 Available At</div>
-              <div className="pdm__store-card">
-                <div className="pdm__store-name">{vendor.storeName}</div>
-                <div className="pdm__store-addr">📍 {vendor.address}, {vendor.city}, NY {vendor.zip}</div>
-                {vendor.phone && <div className="pdm__store-detail">📞 {vendor.phone}</div>}
-                {vendor.hours && <div className="pdm__store-detail">🕐 {vendor.hours}</div>}
-                {vendor.website && (
-                  <a href={vendor.website} target="_blank" rel="noreferrer" className="pdm__store-web">
-                    {vendor.website.replace(/^https?:\/\//, "")} ↗
-                  </a>
-                )}
-                {vendor.deliveryEnabled && (
-                  <div className="pdm__delivery-badge">
-                    🚚 Delivers
-                    {vendor.deliveryRadius ? ` within ${vendor.deliveryRadius} miles` : ""}
-                    {vendor.deliveryFee ? ` · $${parseFloat(vendor.deliveryFee).toFixed(2)} fee` : ""}
-                    {vendor.deliveryMinOrder ? ` · $${parseFloat(vendor.deliveryMinOrder).toFixed(0)} min` : ""}
-                  </div>
-                )}
-              </div>
+
+              {product.supplierBrand === "NY Farm Co" ? (
+                // NY Farm Co products are carried by both WNY retail locations
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { name: "Leaf Plug", addr: "3341 Sheridan Drive, Amherst, NY 14226", phone: "(716) 259-9004", hours: "Mon–Sun: 10 AM – 10 PM", url: "https://leafplug.com", slug: "LEAFPLUG", color: "#38761d" },
+                    { name: "Mary Jane's", addr: "440 Normal Ave, Buffalo, NY 14213", phone: null, hours: null, url: "https://dutchie.com/dispensary/mary-janes-a-legacy-to-legal-dispensary", slug: "MARYJANES", color: "#6d28d9" },
+                  ].map(s => (
+                    <div key={s.slug} className="pdm__store-card" style={{ borderLeft: `3px solid ${s.color}` }}>
+                      <div className="pdm__store-name" style={{ color: s.color }}>{s.name}</div>
+                      <div className="pdm__store-addr">📍 {s.addr}</div>
+                      {s.phone && <div className="pdm__store-detail">📞 {s.phone}</div>}
+                      {s.hours && <div className="pdm__store-detail">🕐 {s.hours}</div>}
+                      <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+                        <a href={`/catalog/${s.slug}`} className="pdm__store-web" style={{ color: s.color }}>
+                          View Catalog ↗
+                        </a>
+                        <a href={s.url} target="_blank" rel="noreferrer" className="pdm__store-web">
+                          {s.url.replace(/^https?:\/\//, "").split("/")[0]} ↗
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="pdm__store-card">
+                  <div className="pdm__store-name">{vendor.storeName}</div>
+                  <div className="pdm__store-addr">📍 {vendor.address}, {vendor.city}, NY {vendor.zip}</div>
+                  {vendor.phone && <div className="pdm__store-detail">📞 {vendor.phone}</div>}
+                  {vendor.hours && <div className="pdm__store-detail">🕐 {vendor.hours}</div>}
+                  {vendor.website && (
+                    <a href={vendor.website} target="_blank" rel="noreferrer" className="pdm__store-web">
+                      {vendor.website.replace(/^https?:\/\//, "")} ↗
+                    </a>
+                  )}
+                  {vendor.deliveryEnabled && (
+                    <div className="pdm__delivery-badge">
+                      🚚 Delivers
+                      {vendor.deliveryRadius ? ` within ${vendor.deliveryRadius} miles` : ""}
+                      {vendor.deliveryFee ? ` · $${parseFloat(vendor.deliveryFee).toFixed(2)} fee` : ""}
+                      {vendor.deliveryMinOrder ? ` · $${parseFloat(vendor.deliveryMinOrder).toFixed(0)} min` : ""}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -392,12 +416,17 @@ export default function Discover() {
 
   const vendorById = Object.fromEntries(vendors.map(v => [v.id, v]));
 
-  // Enrich each product with score + vendor ref
-  const enriched = products.map(p => ({
-    ...p,
-    _vendor: vendorById[p.vendorId] || null,
-    _score:  scoreProductMatch(savedProfile, p),
-  }));
+  // Enrich each product with score + vendor ref; exclude supplier-only vendors
+  const enriched = products
+    .filter(p => {
+      const v = vendorById[p.vendorId];
+      return !v?.isSupplierOnly;
+    })
+    .map(p => ({
+      ...p,
+      _vendor: vendorById[p.vendorId] || null,
+      _score:  scoreProductMatch(savedProfile, p),
+    }));
 
   // Recommended strip — scored products ≥ 60, sorted best first
   const recommended = savedProfile
@@ -497,7 +526,6 @@ export default function Discover() {
               onChange={e => setSort(e.target.value)}
             >
               <option value="match">Best Match</option>
-              <option value="price">Lowest Price</option>
               <option value="thc">Highest THC</option>
             </select>
           </div>

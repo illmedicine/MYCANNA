@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import BiSlider from "../components/BiSlider.jsx";
@@ -8,6 +8,8 @@ import { getConditionsForRegion, getActiveConditionRegions } from "../data/condi
 import { getUserExperiences } from "../services/experienceService.js";
 import { getUserPrestige } from "../services/prestigeService.js";
 import { saveProfile } from "../services/userService.js";
+import { NY_FARM_CO_PRODUCTS } from "../data/nyFarmCoProducts.js";
+import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
 
 // ── Medical conditions ────────────────────────────────────────────────────────
 const MEDICAL_CONDITIONS = [
@@ -591,6 +593,147 @@ function ArchetypeCard({
   );
 }
 
+// ── Product match scoring (same algorithm as Discover.jsx) ───────────────────
+const REC_EARTHY = ["Myrcene", "Caryophyllene", "Humulene", "Bisabolol"];
+const REC_CITRUS = ["Limonene", "Valencene", "Ocimene", "Terpinolene"];
+const REC_CALM   = ["Linalool", "Myrcene", "Bisabolol"];
+
+function scoreProduct(userProfile, product) {
+  if (!userProfile) return null;
+  let earned = 0, possible = 0;
+  if (product.effectDirection) {
+    possible += 25;
+    const e = userProfile.effect ?? 50;
+    if      (e < 35 && product.effectDirection === "Indica")  earned += 25;
+    else if (e > 65 && product.effectDirection === "Sativa")  earned += 25;
+    else if (e >= 35 && e <= 65 && product.effectDirection === "Hybrid") earned += 25;
+    else if (product.effectDirection === "Hybrid")            earned += 12;
+  }
+  if (product.experienceSuitability) {
+    possible += 20;
+    const ex = userProfile.experience ?? 50;
+    if      (ex < 35 && product.experienceSuitability === "Beginner")    earned += 20;
+    else if (ex > 65 && product.experienceSuitability === "Experienced") earned += 20;
+    else if (product.experienceSuitability === "All")                    earned += 15;
+    else if (ex >= 35 && ex <= 65 && product.experienceSuitability !== "Experienced") earned += 10;
+  }
+  if (product.purposeTags) {
+    possible += 15;
+    const p = userProfile.purpose ?? 50;
+    if      (p > 65 && product.purposeTags === "Therapeutic")  earned += 15;
+    else if (p < 35 && product.purposeTags === "Recreational") earned += 15;
+    else if (product.purposeTags === "Both")                   earned += 10;
+  }
+  if (product.socialContext) {
+    possible += 10;
+    const c = userProfile.context ?? 50;
+    if      (c < 35 && product.socialContext === "Solo / Relaxed")   earned += 10;
+    else if (c > 65 && product.socialContext === "Social / Active")  earned += 10;
+    else if (product.socialContext === "Both")                       earned += 7;
+  }
+  if (product.anxietySafe !== undefined && product.anxietySafe !== null) {
+    possible += 10;
+    const a = userProfile.anxiety ?? 50;
+    if (a < 40 && product.anxietySafe) earned += 10;
+    else if (a >= 40) earned += 6;
+  }
+  if (product.primaryTerpenes?.length > 0) {
+    possible += 20;
+    const t = userProfile.terpene ?? 50;
+    const a = userProfile.anxiety ?? 50;
+    let pts = 0;
+    for (const terp of product.primaryTerpenes) {
+      if (t < 40 && REC_EARTHY.includes(terp)) pts += 5;
+      if (t > 60 && REC_CITRUS.includes(terp)) pts += 5;
+      if (a < 40 && REC_CALM.includes(terp))   pts += 4;
+    }
+    earned += Math.min(pts, 20);
+  }
+  if (possible === 0) return null;
+  return Math.round((earned / possible) * 100);
+}
+
+function recProductImage(product) {
+  if (product.imageUrl) return product.imageUrl;
+  const file = STRAIN_IMAGE_MAP[product.name];
+  return file ? `/product-images/${file}` : null;
+}
+
+const REC_EFFECT_LABEL = { Indica: "🌙 Indica", Hybrid: "⚖️ Hybrid", Sativa: "☀️ Sativa" };
+const REC_CAT_ICON = {
+  Flower: "🌿", "Pre-Roll": "🚬", Edible: "🍫", Vape: "💨",
+  Concentrate: "💎", Tincture: "🧪", Topical: "🧴",
+};
+const REC_MATCH_COLOR = s => s >= 85 ? "#10b981" : s >= 70 ? "#f59e0b" : "#94a3b8";
+
+function RecommendedProducts({ savedProfile }) {
+  const top = useMemo(() => {
+    if (!savedProfile) return [];
+    return NY_FARM_CO_PRODUCTS
+      .map(p => ({ ...p, _score: scoreProduct(savedProfile, p) }))
+      .filter(p => p._score !== null && p._score >= 60)
+      .sort((a, b) => b._score - a._score)
+      .slice(0, 6);
+  }, [savedProfile]);
+
+  if (!top.length) return null;
+
+  return (
+    <div className="recs-section">
+      <div className="recs-header">
+        <div className="recs-title">🌿 Recommended For You</div>
+        <div className="recs-sub">
+          Matched to your cannabis profile · Available at 2 WNY locations
+        </div>
+      </div>
+
+      <div className="recs-strip">
+        {top.map((p, i) => {
+          const imgSrc = recProductImage(p);
+          return (
+            <div key={`${p.name}-${i}`} className="recs-card">
+              <div className="recs-card__media" style={{ background: imgSrc ? "var(--c-surface-2, #111)" : `${REC_MATCH_COLOR(p._score)}18` }}>
+                {imgSrc
+                  ? <img src={imgSrc} alt={p.name} className="recs-card__img" />
+                  : <span className="recs-card__icon">{REC_CAT_ICON[p.category] || "🌿"}</span>
+                }
+                <span className="recs-card__match" style={{ background: REC_MATCH_COLOR(p._score) }}>
+                  {p._score}%
+                </span>
+              </div>
+              <div className="recs-card__body">
+                <div className="recs-card__cat">{p.category}</div>
+                <div className="recs-card__name">{p.name}</div>
+                <div className="recs-card__brand">{p.brand}</div>
+                {p.effectDirection && (
+                  <div className="recs-card__effect">{REC_EFFECT_LABEL[p.effectDirection]}</div>
+                )}
+                {p.primaryTerpenes?.length > 0 && (
+                  <div className="recs-card__terpenes">
+                    {p.primaryTerpenes.slice(0, 2).map(t => <span key={t} className="recs-terpene">{t}</span>)}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="recs-stores">
+        <span className="recs-stores__label">Only at 2 WNY locations:</span>
+        <div className="recs-stores__links">
+          <Link to="/catalog/LEAFPLUG" className="recs-store-btn" style={{ borderColor: "#38761d", color: "#38761d" }}>
+            📍 Leaf Plug · Amherst, NY
+          </Link>
+          <Link to="/catalog/MARYJANES" className="recs-store-btn" style={{ borderColor: "#6d28d9", color: "#6d28d9" }}>
+            📍 Mary Jane's · Buffalo, NY
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function deriveProfile(answers) {
   if (!answers) return null;
   const { effect = 50, thc_sensitivity = 50, cbd_importance = 50, anxiety = 50,
@@ -994,6 +1137,9 @@ export default function Dashboard() {
           onSaveHealth={saveHealthData}
         />
       )}
+
+      {/* ── Personalized product recommendations ── */}
+      {profile && <RecommendedProducts savedProfile={savedProfile} />}
 
       {/* ── Fallback accordions (only shown when no profile yet) ── */}
       {!profile && (

@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
+import {
+  onAuthStateChanged, signInWithPopup, signInWithRedirect,
+  getRedirectResult, signOut as firebaseSignOut,
+} from "firebase/auth";
 import { auth, googleProvider } from "../firebase.js";
 import { ensureUserDoc, getUserDoc, saveHealthData } from "../services/userService.js";
 import { logActivity } from "../services/activityService.js";
@@ -17,6 +20,23 @@ export function AuthProvider({ children }) {
   const [userDocReady,  setUserDocReady]  = useState(false);
 
   useEffect(() => {
+    // Drain any pending redirect result (fires when the redirect fallback was used).
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          try {
+            await ensureUserDoc(result.user.uid, {
+              name:    result.user.displayName,
+              email:   result.user.email,
+              picture: result.user.photoURL,
+            });
+          } catch {}
+        }
+      })
+      .catch((err) => {
+        console.warn("[Auth] getRedirectResult:", err?.code);
+      });
+
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = {
@@ -64,14 +84,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const u = result.user;
-    await ensureUserDoc(u.uid, {
-      name:    u.displayName,
-      email:   u.email,
-      picture: u.photoURL,
-    });
-    return result;
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const u = result.user;
+      await ensureUserDoc(u.uid, {
+        name:    u.displayName,
+        email:   u.email,
+        picture: u.photoURL,
+      });
+      return result;
+    } catch (err) {
+      // User closed the popup — not an error.
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        return;
+      }
+      // Popup was blocked or environment doesn't support it — fall back to redirect.
+      if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment") {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      throw err;
+    }
   };
 
   const signOut = () => firebaseSignOut(auth);

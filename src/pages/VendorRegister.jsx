@@ -37,7 +37,25 @@ export default function VendorRegister() {
   const { user, signIn, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Show sign-in gate if not authenticated
+  // All hooks must be declared before any conditional returns
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [selectedTier, setSelectedTier] = useState("free");
+  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({
+    storeName: "",
+    address: "",
+    city: "",
+    state: "NY",
+    zip: "",
+    phone: "",
+    website: "",
+    licenseNumber: "",
+    licenseType: "adult_use",
+    description: "",
+    region: "WNY",
+  });
+
   if (loading) return <div className="app-loading">🌿</div>;
 
   if (!user) {
@@ -64,24 +82,6 @@ export default function VendorRegister() {
       </div>
     );
   }
-  const [step, setStep] = useState(1); // 1=info, 2=tier, 3=submitted
-  const [saving, setSaving] = useState(false);
-  const [selectedTier, setSelectedTier] = useState("free");
-  const [errors, setErrors] = useState({});
-
-  const [form, setForm] = useState({
-    storeName: "",
-    address: "",
-    city: "",
-    state: "NY",
-    zip: "",
-    phone: "",
-    website: "",
-    licenseNumber: "",
-    licenseType: "adult_use",
-    description: "",
-    region: "WNY",
-  });
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 

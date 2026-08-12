@@ -1,0 +1,41 @@
+User-agent: *
+Allow: /
+Allow: /discover
+Allow: /leaderboard
+Allow: /merch
+
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /log
+Disallow: /vendor/
+Disallow: /staff-edu/
+Disallow: /pitch
+
+# Block AI training crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /

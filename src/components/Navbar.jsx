@@ -3,14 +3,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import MycanaLogo from "./Logo.jsx";
 
-const ADMIN_EMAILS = ['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'demarkuswilsone@gmail.com'];
+const ADMIN_EMAILS = ['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'jcgstone@gmail.com', 'demarkuswilsone@gmail.com'];
 
 const NAV_LINKS = [
-  { to: "/discover",   label: "Discover",    icon: "🗺️" },
-  { to: "/dashboard",  label: "Dashboard",   icon: "🧬", protected: true },
-  { to: "/leaderboard",label: "Leaderboard", icon: "🏆" },
-  { to: "/log",        label: "Log",         icon: "📝", protected: true },
-  { to: "/merch",      label: "Shop",        icon: "👕" },
+  { to: "/discover",    label: "Discover",    icon: "🗺️" },
+  { to: "/leaderboard", label: "Leaderboard", icon: "🏆" },
+  { to: "/log",         label: "Log",         icon: "📝", protected: true },
+  { to: "/merch",       label: "Shop",        icon: "👕" },
 ];
 
 export default function Navbar() {
@@ -48,9 +47,6 @@ export default function Navbar() {
               {ADMIN_EMAILS.includes(user.email) && (
                 <Link to="/admin" className="navbar__admin-btn">⚙ Admin</Link>
               )}
-              <Link to="/dashboard" className="btn btn--sm btn--outline navbar__profile-btn">
-                My Profile
-              </Link>
               <button className="navbar__avatar-btn" onClick={() => setMenuOpen((o) => !o)} title="Account">
                 <img src={user.picture} alt={user.name} className="navbar__avatar" />
               </button>
@@ -80,12 +76,16 @@ export default function Navbar() {
               </div>
             )}
             <div className="nav-menu__links">
-              {NAV_LINKS.filter((l) => !l.protected || user).map((l) => (
-                <Link key={l.to} to={l.to} className="nav-menu__link" onClick={() => setMenuOpen(false)}>
-                  <span>{l.icon}</span> {l.label}
-                </Link>
-              ))}
-              {user && (
+              {/* Mobile-only: main nav links not visible in the top bar on small screens */}
+              <div className="nav-menu__mobile-nav">
+                {NAV_LINKS.filter((l) => !l.protected || user).map((l) => (
+                  <Link key={l.to} to={l.to} className="nav-menu__link" onClick={() => setMenuOpen(false)}>
+                    <span>{l.icon}</span> {l.label}
+                  </Link>
+                ))}
+              </div>
+
+              {user ? (
                 <>
                   {ADMIN_EMAILS.includes(user.email) && (
                     <Link to="/admin" className="nav-menu__link nav-menu__link--admin" onClick={() => setMenuOpen(false)}>
@@ -95,19 +95,17 @@ export default function Navbar() {
                   <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>🧬</span> My Dashboard
                   </Link>
-                  <Link to="/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
-                    <span>👤</span> My Profile
-                  </Link>
                   <Link to="/vendor/dashboard" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
                     <span>🏪</span> My Store Dashboard
-                  </Link>
-                  <Link to="/vendor/register" className="nav-menu__link" onClick={() => setMenuOpen(false)}>
-                    <span>➕</span> List My Store
                   </Link>
                   <button className="nav-menu__link nav-menu__signout" onClick={handleSignOut}>
                     <span>↩️</span> Sign Out
                   </button>
                 </>
+              ) : (
+                <button className="nav-menu__link" onClick={() => { signIn(); setMenuOpen(false); }}>
+                  <span>🔑</span> Sign In
+                </button>
               )}
             </div>
           </div>

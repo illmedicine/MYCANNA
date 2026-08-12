@@ -292,7 +292,7 @@ export default function Home() {
           {' · '}<Link to="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>Privacy Policy</Link>
           {' · '}A product of <a href="https://www.illyrobotic-ai.com" style={{ color: 'inherit', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">Illy Robotic Instruments</a>
         </p>
-        {['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'demarkuswilsone@gmail.com'].includes(user?.email) ? (
+        {['dwilson@illyrobotic-ai.com', 'jcgstone@yahoo.com', 'jcgstone@gmail.com', 'demarkuswilsone@gmail.com'].includes(user?.email) ? (
           <Link
             to="/admin"
             style={{

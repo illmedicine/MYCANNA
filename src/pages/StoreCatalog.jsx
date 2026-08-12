@@ -288,17 +288,36 @@ export default function StoreCatalog() {
         }}
       >
         <div className="sc-hero__inner">
-          <div className="sc-hero__badge" style={{ background: themeColor }}>Premium Wholesale Catalog</div>
+          <div className="sc-hero__badge" style={{ background: themeColor }}>
+            {vendor.isRetailOnly ? "🏪 Licensed Cannabis Dispensary" : "Premium Wholesale Catalog"}
+          </div>
+          {vendor.isExampleStorefront && (
+            <div className="sc-hero__supplier-badge">🌿 Authorized NY Farm Co Retailer</div>
+          )}
           <h1 className="sc-hero__name">{vendor.storeName}</h1>
-          <p className="sc-hero__loc">📍 {vendor.city}, NY · {vendor.licenseType?.replace("_", " ")}</p>
+          <p className="sc-hero__loc">📍 {vendor.city}, NY · {vendor.phone || vendor.licenseType?.replace("_", " ")}</p>
+          {vendor.hours && <p className="sc-hero__loc">🕐 {vendor.hours}</p>}
           {vendor.catalogWelcomeText && (
             <p className="sc-hero__welcome">{vendor.catalogWelcomeText}</p>
           )}
 
           <div className="sc-hero__actions">
-            <button className="sc-btn sc-btn--white" onClick={() => setShowOrder(true)}>
-              🛒 Place Wholesale Order
-            </button>
+            {vendor.isRetailOnly ? (
+              vendor.website && (
+                <a
+                  href={vendor.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="sc-btn sc-btn--white"
+                >
+                  🌐 Visit Store Website
+                </a>
+              )
+            ) : (
+              <button className="sc-btn sc-btn--white" onClick={() => setShowOrder(true)}>
+                🛒 Place Wholesale Order
+              </button>
+            )}
             <button className="sc-btn sc-btn--ghost" onClick={handleCopy}>
               {copied ? "✓ Copied!" : "🔗 Share Link"}
             </button>
@@ -308,6 +327,15 @@ export default function StoreCatalog() {
           </div>
         </div>
       </div>
+
+      {/* Supplier attribution banner */}
+      {vendor.isExampleStorefront && (
+        <div className="sc-supplier-banner" style={{ borderLeft: `4px solid ${themeColor}` }}>
+          <span className="sc-supplier-banner__label">🌾 Products supplied by</span>
+          <strong className="sc-supplier-banner__name">NY Farm Co</strong>
+          <span className="sc-supplier-banner__note">— the only 2 WNY locations carrying NY Farm Co's full catalog</span>
+        </div>
+      )}
 
       {/* Category filter */}
       <div className="sc-filters" style={{ borderBottom: `3px solid ${themeColor}20` }}>
@@ -332,54 +360,33 @@ export default function StoreCatalog() {
           {filtered.length === 0 && (
             <div className="sc-empty">No products in this category yet.</div>
           )}
-          {filtered.map(product => {
-            const wPrice = product.wholesalePrice ? parseFloat(product.wholesalePrice) : null;
-            const rPrice = product.price ? parseFloat(product.price) : null;
-            return (
-              <div key={product.id} className="sc-product-card">
-                {productImg(product)
-                  ? <img src={productImg(product)} alt={product.name} className="sc-product-card__img" />
-                  : <div className="sc-product-card__no-img" style={{ background: themeColor + "22" }}>
-                      {CATEGORY_EMOJI[product.category] || "🌿"}
-                    </div>
-                }
-                <div className="sc-product-card__body">
-                  <div className="sc-product-card__cat" style={{ color: themeColor }}>
-                    {CATEGORY_EMOJI[product.category] || "📦"} {product.category}
+          {filtered.map(product => (
+            <div key={product.id} className="sc-product-card">
+              {productImg(product)
+                ? <img src={productImg(product)} alt={product.name} className="sc-product-card__img" />
+                : <div className="sc-product-card__no-img" style={{ background: themeColor + "22" }}>
+                    {CATEGORY_EMOJI[product.category] || "🌿"}
                   </div>
-                  <div className="sc-product-card__name">{product.name}</div>
-                  <div className="sc-product-card__canna">
-                    {product.thcPct !== "" && product.thcPct != null && (
-                      <span className="sc-tag sc-tag--thc">THC {product.thcPct}%</span>
-                    )}
-                    {product.cbdPct !== "" && product.cbdPct != null && (
-                      <span className="sc-tag sc-tag--cbd">CBD {product.cbdPct}%</span>
-                    )}
-                  </div>
-                  {product.description && (
-                    <p className="sc-product-card__desc">{product.description}</p>
-                  )}
-                  <div className="sc-product-card__pricing">
-                    {wPrice != null && (
-                      <div className="sc-product-card__wholesale">
-                        <span className="sc-price-lbl">Wholesale</span>
-                        <span className="sc-price-val sc-price-val--w" style={{ color: themeColor }}>${wPrice.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {rPrice != null && (
-                      <div className="sc-product-card__retail">
-                        <span className="sc-price-lbl">Retail</span>
-                        <span className="sc-price-val">${rPrice.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {product.stockCount != null && product.stockCount !== "" && (
-                      <div className="sc-product-card__stock">{product.stockCount} units avail.</div>
-                    )}
-                  </div>
+              }
+              <div className="sc-product-card__body">
+                <div className="sc-product-card__cat" style={{ color: themeColor }}>
+                  {CATEGORY_EMOJI[product.category] || "📦"} {product.category}
                 </div>
+                <div className="sc-product-card__name">{product.name}</div>
+                <div className="sc-product-card__canna">
+                  {product.thcPct !== "" && product.thcPct != null && (
+                    <span className="sc-tag sc-tag--thc">THC {product.thcPct}%</span>
+                  )}
+                  {product.cbdPct !== "" && product.cbdPct != null && (
+                    <span className="sc-tag sc-tag--cbd">CBD {product.cbdPct}%</span>
+                  )}
+                </div>
+                {product.description && (
+                  <p className="sc-product-card__desc">{product.description}</p>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
 

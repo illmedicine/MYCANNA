@@ -1,6 +1,27 @@
 /* ── Staff EDU Portal ─────────────────────────────────────────────────────── */
 
-/* Name gate */
+/* Loading state */
+.edu-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 40vh; gap: 16px;
+  color: var(--c-text-muted); font-size: .9rem;
+}
+.edu-loading__spinner {
+  font-size: 2.5rem;
+  display: inline-block;
+  animation: edu-spin 2s linear infinite;
+}
+@keyframes edu-spin { to { transform: rotate(360deg); } }
+
+/* Roster empty / loading states */
+.edu-roster-loading { color: var(--c-text-muted); padding: 20px 0; font-size: .9rem; }
+.edu-roster-empty {
+  background: var(--c-bg-card); border: 1px dashed var(--c-border);
+  border-radius: var(--r-md); padding: 32px; text-align: center;
+  color: var(--c-text-muted); font-size: .9rem;
+}
+
+/* Name gate (legacy — kept for graceful fallback) */
 .edu-name-gate {
   display: flex; align-items: center; justify-content: center;
   min-height: 60vh; padding: 40px 20px;

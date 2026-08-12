@@ -361,13 +361,122 @@ export default function Privacy() {
           {/* ── Security ── */}
           <section id="security" className="privacy-section">
             <h2>Security</h2>
+            <p>
+              Mycana is built on Google's Firebase infrastructure and hardened with industry-standard
+              security controls at every layer — from your browser connection to our database. Below
+              is a transparent, technical accounting of every protection in place.
+            </p>
+
+            {/* Authentication */}
+            <h3 className="privacy-subsection-title">Authentication</h3>
             <ul className="privacy-list">
-              <li><strong>Authentication</strong> — We use Google OAuth 2.0. Mycana never stores passwords. Your authentication token is managed entirely by Google.</li>
-              <li><strong>Database Security</strong> — Firestore security rules are server-enforced. Your document is readable and writable only by your authenticated UID. Rules are version-controlled and audited with each deployment.</li>
-              <li><strong>Transport Security</strong> — All traffic is served over HTTPS (TLS 1.3). Firebase Hosting enforces HSTS headers.</li>
-              <li><strong>No Raw API Keys in Client</strong> — Firebase configuration keys are scoped to our specific project and domain, enforced by Firebase App Check. Backend Cloud Functions use server-only credentials.</li>
-              <li><strong>Image Storage</strong> — Product photos you upload are stored in Firebase Storage under your authenticated user path. Signed URLs expire after 1 hour.</li>
-              <li><strong>Incident Response</strong> — We maintain a documented incident response plan. In the event of a breach affecting your data, you will be notified within 72 hours via email.</li>
+              <li><strong>Google OAuth 2.0</strong> — Mycana never stores passwords. Your login is handled entirely by Google's identity platform. We receive only a verified identity token.</li>
+              <li><strong>Server-enforced Firestore rules</strong> — Your database document is readable and writable exclusively by your authenticated UID. These rules cannot be bypassed by client code.</li>
+              <li><strong>No raw API keys</strong> — Firebase configuration keys are scoped to our project and domain. Backend Cloud Functions use server-only credentials never exposed to the browser.</li>
+            </ul>
+
+            {/* Encryption */}
+            <h3 className="privacy-subsection-title">Encryption — Data in Transit &amp; at Rest</h3>
+            <div className="privacy-security-grid">
+              <div className="privacy-sec-card">
+                <div className="privacy-sec-card__icon">🔐</div>
+                <div className="privacy-sec-card__label">Firebase Firestore</div>
+                <div className="privacy-sec-card__value">AES-256 at rest</div>
+                <p className="privacy-sec-card__note">Google-managed encryption keys applied to every document by default. No configuration required — it is always on.</p>
+              </div>
+              <div className="privacy-sec-card">
+                <div className="privacy-sec-card__icon">🔒</div>
+                <div className="privacy-sec-card__label">Data in Transit</div>
+                <div className="privacy-sec-card__value">TLS 1.3</div>
+                <p className="privacy-sec-card__note">All traffic between your browser and Mycana servers is encrypted using modern TLS 1.3. Older, vulnerable protocols (TLS 1.0/1.1, SSL) are rejected.</p>
+              </div>
+              <div className="privacy-sec-card">
+                <div className="privacy-sec-card__icon">💳</div>
+                <div className="privacy-sec-card__label">Payment Processing</div>
+                <div className="privacy-sec-card__value">PCI DSS Level 1</div>
+                <p className="privacy-sec-card__note">All payments are processed by PayPal. Mycana never touches, stores, or transmits card numbers. PayPal holds the highest PCI compliance certification.</p>
+              </div>
+            </div>
+
+            {/* HTTP Security Headers */}
+            <h3 className="privacy-subsection-title">HTTP Security Headers</h3>
+            <p>Every response served by Mycana includes the following security headers, enforced at the CDN edge before content reaches your browser:</p>
+            <div className="privacy-table-wrap">
+              <table className="privacy-table">
+                <thead>
+                  <tr>
+                    <th>Header</th>
+                    <th>Value</th>
+                    <th>What It Does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Strict-Transport-Security</code></td>
+                    <td><code>max-age=63072000; includeSubDomains; preload</code></td>
+                    <td>Browsers refuse HTTP connections entirely for 2 years, even if you type a plain URL. Submitted for HSTS preload list inclusion.</td>
+                  </tr>
+                  <tr>
+                    <td><code>X-Frame-Options</code></td>
+                    <td><code>DENY</code></td>
+                    <td>Prevents Mycana from being embedded in an iframe on any external site, blocking clickjacking attacks and design scraping.</td>
+                  </tr>
+                  <tr>
+                    <td><code>X-Content-Type-Options</code></td>
+                    <td><code>nosniff</code></td>
+                    <td>Prevents browsers from guessing file types — blocks MIME-type confusion attacks.</td>
+                  </tr>
+                  <tr>
+                    <td><code>X-XSS-Protection</code></td>
+                    <td><code>1; mode=block</code></td>
+                    <td>Activates browser-level cross-site scripting filters. Blocks page rendering if an XSS attack is detected.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Referrer-Policy</code></td>
+                    <td><code>strict-origin-when-cross-origin</code></td>
+                    <td>Limits referrer information sent to external sites — your navigation path is not leaked to third parties.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Permissions-Policy</code></td>
+                    <td><code>geolocation=(), microphone=(), camera=(), payment=()</code></td>
+                    <td>Explicitly disables access to device hardware APIs. Mycana cannot request your location, microphone, or camera.</td>
+                  </tr>
+                  <tr>
+                    <td><code>X-Robots-Tag</code></td>
+                    <td><code>noai, noimageai</code></td>
+                    <td>Signals to compliant AI crawlers that Mycana's content and images must not be used for AI model training.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* DDoS */}
+            <h3 className="privacy-subsection-title">DDoS Protection</h3>
+            <div className="privacy-callout privacy-callout--info">
+              <span>🛡️</span>
+              <p>
+                Mycana is hosted on <strong>Firebase Hosting</strong>, which runs on Google's global
+                CDN — the same infrastructure serving Google Search, YouTube, and Google Cloud.
+                This provides automatic, always-on volumetric DDoS absorption with no configuration
+                required on our part. Traffic is distributed across hundreds of edge nodes globally,
+                making targeted saturation attacks impractical.
+              </p>
+            </div>
+
+            {/* Anti-Scraping */}
+            <h3 className="privacy-subsection-title">Content Protection &amp; Anti-Scraping</h3>
+            <ul className="privacy-list">
+              <li><strong>robots.txt enforcement</strong> — All major AI training crawlers are explicitly blocked by name (GPTBot, Google-Extended, CCBot, Claude-Web, Diffbot, and others). Admin, dashboard, vendor, and staff routes are marked <code>Disallow</code> and will not appear in search indexes.</li>
+              <li><strong>X-Frame-Options: DENY</strong> — No external site can embed Mycana in an iframe, which prevents automated visual scraping of our UI design.</li>
+              <li><strong>X-Robots-Tag: noai, noimageai</strong> — All responses instruct compliant AI crawlers to exclude Mycana's content and product images from training datasets.</li>
+              <li><strong>Firestore security rules</strong> — Product listings, vendor data, and user data are served only to authenticated, authorized sessions. Unauthenticated bulk reads of protected collections are rejected at the database level.</li>
+            </ul>
+
+            {/* Storage & Incident */}
+            <h3 className="privacy-subsection-title">Storage &amp; Incident Response</h3>
+            <ul className="privacy-list">
+              <li><strong>Image Storage</strong> — Product photos you upload are stored in Firebase Storage under your authenticated user path. Access is governed by Storage security rules tied to your UID.</li>
+              <li><strong>Incident Response</strong> — In the event of a security breach affecting your personal data, you will be notified within 72 hours of discovery via the email address on your account, consistent with GDPR and CCPA notification standards.</li>
             </ul>
           </section>
 

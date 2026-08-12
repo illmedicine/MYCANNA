@@ -35,6 +35,13 @@ export async function getVendor(vendorId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
+export async function getVendorBySlug(slug) {
+  const q = query(collection(db, "vendors"), where("catalogSlug", "==", slug.toUpperCase()), limit(1));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
 export async function getApprovedVendors() {
   const q = query(
     collection(db, "vendors"),
@@ -161,7 +168,13 @@ export async function updateVendorTier(vendorId, tier) {
   await updateDoc(doc(db, "vendors", vendorId), {
     tier,
     updatedAt: serverTimestamp(),
+    // Flag picked up by VendorDashboard to trigger the welcome celebration
+    ...(tier !== "free" ? { celebrationPending: true } : { celebrationPending: false }),
   });
+}
+
+export async function clearCelebration(vendorId) {
+  await updateDoc(doc(db, "vendors", vendorId), { celebrationPending: false });
 }
 
 export async function bulkAddProducts(vendorId, productList) {
@@ -194,4 +207,116 @@ export async function rejectVendor(vendorId, reason = "") {
     rejectionReason: reason,
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function markVendorAsSupplierOnly(vendorId) {
+  await updateDoc(doc(db, "vendors", vendorId), {
+    isSupplierOnly: true,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function seedExampleStorefronts(adminUid, nyFarmCoProducts) {
+  const allSnap = await getDocs(query(collection(db, "vendors"), limit(200)));
+  const existing = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const results = {};
+
+  const STOREFRONTS = [
+    {
+      slug: "LEAFPLUG",
+      storeName: "Leaf Plug",
+      email: "info@leafplug.com",
+      phone: "(716) 259-9004",
+      address: "3341 Sheridan Drive",
+      city: "Amherst",
+      zip: "14226",
+      hours: "Mon–Sun: 10 AM – 10 PM",
+      website: "https://leafplug.com",
+      instagram: "@leafplug_ny",
+      description: "Cannabis for Western New Yorkers by Western New Yorkers. WNY's #1 licensed cannabis dispensary — NY State license OCM-RETL-24-000010.",
+      catalogWelcomeText: "Authorized retailer of NY Farm Co products — serving Amherst and the greater Buffalo area.",
+      catalogThemeColor: "#38761d",
+    },
+    {
+      slug: "MARYJANES",
+      storeName: "Mary Jane's",
+      email: "",
+      phone: "",
+      address: "440 Normal Ave",
+      city: "Buffalo",
+      zip: "14213",
+      hours: "",
+      website: "https://dutchie.com/dispensary/mary-janes-a-legacy-to-legal-dispensary",
+      instagram: "",
+      description: "A Legacy to Legal dispensary — social equity licensed cannabis retail serving the Buffalo community. NY State license NY-166868694.",
+      catalogWelcomeText: "Authorized retailer of NY Farm Co products — serving Buffalo and the greater WNY region.",
+      catalogThemeColor: "#6d28d9",
+    },
+  ];
+
+  for (const sf of STOREFRONTS) {
+    const exists = existing.find(v => v.catalogSlug === sf.slug);
+    if (exists) {
+      results[sf.slug] = { alreadyExists: true, vendorId: exists.id };
+      continue;
+    }
+
+    const vendorRef = await addDoc(collection(db, "vendors"), {
+      storeName: sf.storeName,
+      ownerId: adminUid || "system",
+      ownerEmails: sf.email ? [sf.email] : [],
+      email: sf.email,
+      phone: sf.phone,
+      address: sf.address,
+      city: sf.city,
+      zip: sf.zip,
+      hours: sf.hours,
+      website: sf.website,
+      instagram: sf.instagram,
+      description: sf.description,
+      catalogWelcomeText: sf.catalogWelcomeText,
+      catalogThemeColor: sf.catalogThemeColor,
+      licenseType: "retail",
+      region: "WNY",
+      status: "approved",
+      tier: "premium",
+      isExampleStorefront: true,
+      isRetailOnly: true,
+      supplierNote: "Authorized retailer of NY Farm Co products",
+      catalogSlug: sf.slug,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      approvedAt: serverTimestamp(),
+    });
+
+    for (const product of nyFarmCoProducts) {
+      await addDoc(collection(db, "products"), {
+        ...product,
+        vendorId: vendorRef.id,
+        supplierBrand: "NY Farm Co",
+        region: "WNY",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    results[sf.slug] = { vendorId: vendorRef.id, productCount: nyFarmCoProducts.length };
+  }
+
+  // Mark any NY Farm Co supplier vendor as supplier-only so it won't appear in consumer Discover
+  const nyFarmCo = existing.find(v =>
+    !v.isExampleStorefront &&
+    (v.storeName?.toLowerCase().includes("farm co") ||
+     ["NYFARMC", "NYFARMCO", "NYFARM"].includes(v.catalogSlug))
+  );
+  if (nyFarmCo && !nyFarmCo.isSupplierOnly) {
+    await updateDoc(doc(db, "vendors", nyFarmCo.id), {
+      isSupplierOnly: true,
+      updatedAt: serverTimestamp(),
+    });
+    results.nyFarmCoMarked = nyFarmCo.id;
+  }
+
+  return results;
 }

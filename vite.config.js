@@ -12,7 +12,7 @@ export default defineConfig({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/__\//],
         // Always fetch HTML documents from the network so new deploys
         // show up immediately instead of serving stale cached index.html.
         runtimeCaching: [{
@@ -33,9 +33,10 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         icons: [
-          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/favicon.svg',         sizes: 'any',     type: 'image/svg+xml', purpose: 'any' },
+          { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+          { src: '/icon-192.png',         sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png',         sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),

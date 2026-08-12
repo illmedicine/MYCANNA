@@ -1,6 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import MycanaLogo from "../components/Logo.jsx";
 import "./Merch.css";
+
+/* ── Lightbox ───────────────────────────────────────────────────────────── */
+function Lightbox({ src, alt, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div className="merch-lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label={alt}>
+      <button className="merch-lightbox__close" onClick={onClose} aria-label="Close">✕</button>
+      <img
+        src={src}
+        alt={alt}
+        className="merch-lightbox__img"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+}
 
 /* ── Product catalogue ──────────────────────────────────────────────────── */
 const PRODUCTS = [
@@ -146,9 +171,10 @@ function CartDrawer({ items, onRemove, onClose }) {
 
 /* ── Product card ───────────────────────────────────────────────────────── */
 function ProductCard({ product, onAddToCart }) {
-  const [colorIdx, setColorIdx] = useState(0);
-  const [sizeIdx,  setSizeIdx]  = useState(0);
-  const [added,    setAdded]    = useState(false);
+  const [colorIdx,  setColorIdx]  = useState(0);
+  const [sizeIdx,   setSizeIdx]   = useState(0);
+  const [added,     setAdded]     = useState(false);
+  const [lightbox,  setLightbox]  = useState(false);
 
   const color = product.colors[colorIdx];
 
@@ -169,14 +195,25 @@ function ProductCard({ product, onAddToCart }) {
 
   return (
     <div className="merch-card">
-      <div className="merch-card__visual merch-card__visual--photo">
+      <div
+        className="merch-card__visual merch-card__visual--photo merch-card__visual--zoomable"
+        onClick={() => setLightbox(true)}
+        role="button"
+        tabIndex={0}
+        aria-label={`View ${product.name} full size`}
+        onKeyDown={(e) => e.key === "Enter" && setLightbox(true)}
+      >
         {product.tag && <span className="merch-card__tag">{product.tag}</span>}
         <img
           src={product.image}
           alt={product.name}
           className="merch-product-photo"
+          loading="lazy"
+          decoding="async"
         />
+        <div className="merch-card__zoom-hint">🔍 View</div>
       </div>
+      {lightbox && <Lightbox src={product.image} alt={product.name} onClose={() => setLightbox(false)} />}
 
       <div className="merch-card__body">
         <div>

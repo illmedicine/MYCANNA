@@ -85,6 +85,31 @@ export function formatActivity(event) {
         icon: "🏪",
         text: `${event.storeName || "A new dispensary"} just joined Mycana${event.city ? ` in ${event.city}` : ""}`,
       };
+    case "vendor_subscribed":
+      return {
+        icon: event.tier === "premium" ? "⭐" : "🌟",
+        text: `${event.storeName || "A dispensary"} just activated a ${event.tier === "premium" ? "Premium" : "Standard"} Mycana membership${event.city ? ` in ${event.city}` : ""}!`,
+      };
+    case "staff_joined":
+      return {
+        icon: "👋",
+        text: `A new budtender just joined ${event.storeName || "a Mycana store"}'s training program`,
+      };
+    case "module_completed":
+      return {
+        icon: "🎓",
+        text: `A budtender at ${event.storeName || "a Mycana store"} just completed the ${event.moduleName || "training"} module`,
+      };
+    case "sidequest_completed":
+      return {
+        icon: "⚡",
+        text: `A budtender at ${event.storeName || "a Mycana store"} just cleared the ${event.sidequestTitle || "Sidequest"} challenge`,
+      };
+    case "staff_certified":
+      return {
+        icon: "⭐",
+        text: `A budtender at ${event.storeName || "a Mycana store"} just earned Mycana Certification!`,
+      };
     default:
       return null;
   }

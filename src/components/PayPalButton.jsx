@@ -5,8 +5,8 @@ const CLIENT_ID =
 
 // Map tier to hosted button ID — add more as PayPal buttons are created
 export const PAYPAL_BUTTONS = {
-  standard: "8H3633TKERKSC",
-  premium: null, // add when available
+  standard: "KW6ZX5ZZCZ7XA",
+  premium: "2RLRRERUZLA82",
 };
 
 export default function PayPalButton({ hostedButtonId, label }) {

@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getAllVendorsAdmin, approveVendor, rejectVendor,
-  updateVendorTier, bulkAddProducts, addVendorCoOwner, ensureVendorSlug,
+  updateVendorTier, addVendorCoOwner, ensureVendorSlug,
+  seedExampleStorefronts,
 } from "../services/vendorService.js";
 import { NY_FARM_CO_PRODUCTS } from "../data/nyFarmCoProducts.js";
-import { STRAIN_IMAGE_MAP } from "../data/strainImageMap.js";
 import { logActivity } from "../services/activityService.js";
 import { auth } from "../firebase.js";
-import { getVendorProducts, updateProduct, uploadProductImage } from "../services/vendorService.js";
+import { onAuthStateChanged } from "firebase/auth";
 import "./AdminPortal.css";
 
 // Change this PIN in .env.local → VITE_ADMIN_PIN=xxxx
@@ -93,6 +93,114 @@ function PinGate({ onUnlock }) {
   );
 }
 
+/* ── Storefront Seed Panel ─────────────────────────────────────────── */
+function StorefrontSeedPanel() {
+  const [status, setStatus] = useState("idle"); // idle | seeding | done | error
+  const [result, setResult] = useState(null);
+  const [fbUser, setFbUser]   = useState(() => auth.currentUser);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, u => setFbUser(u));
+    return unsub;
+  }, []);
+
+  const handleSeed = async () => {
+    setStatus("seeding");
+    try {
+      const res = await seedExampleStorefronts(auth.currentUser?.uid, NY_FARM_CO_PRODUCTS);
+      setResult(res);
+      setStatus("done");
+    } catch (e) {
+      console.error(e);
+      setStatus("error");
+    }
+  };
+
+  const STORES = [
+    {
+      slug: "LEAFPLUG",
+      name: "Leaf Plug",
+      addr: "3341 Sheridan Dr, Amherst NY 14226",
+      phone: "(716) 259-9004",
+      hours: "Mon–Sun 10 AM–10 PM",
+      color: "#38761d",
+      url: "https://leafplug.com",
+      license: "OCM-RETL-24-000010",
+    },
+    {
+      slug: "MARYJANES",
+      name: "Mary Jane's",
+      addr: "440 Normal Ave, Buffalo NY 14213",
+      phone: "N/A",
+      hours: "See Dutchie menu",
+      color: "#6d28d9",
+      url: "https://dutchie.com/dispensary/mary-janes-a-legacy-to-legal-dispensary",
+      license: "NY-166868694",
+    },
+  ];
+
+  return (
+    <div style={{ padding: "0 0 24px" }}>
+      <p style={{ fontSize: 13, color: "#7A9A7A", margin: "12px 0 16px" }}>
+        Seeds Leaf Plug and Mary Jane's as example retail storefronts carrying all {NY_FARM_CO_PRODUCTS.length} NY Farm Co products.
+        Safe to run multiple times — skips stores that already exist.
+      </p>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
+        {STORES.map(s => (
+          <div key={s.slug} style={{ background: "#0d1f0f", border: `2px solid ${s.color}40`, borderRadius: 12, padding: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: s.color }} />
+              <strong style={{ color: "#e8f5e2", fontSize: 15 }}>{s.name}</strong>
+              {result?.[s.slug]?.alreadyExists && <span style={{ fontSize: 11, color: "#10b981", marginLeft: "auto" }}>✓ Exists</span>}
+              {result?.[s.slug]?.vendorId && !result[s.slug].alreadyExists && <span style={{ fontSize: 11, color: "#10b981", marginLeft: "auto" }}>✓ Seeded</span>}
+            </div>
+            <div style={{ fontSize: 12, color: "#7A9A7A", display: "flex", flexDirection: "column", gap: 4 }}>
+              <span>📍 {s.addr}</span>
+              <span>📞 {s.phone}</span>
+              <span>🕐 {s.hours}</span>
+              <span>🪪 {s.license}</span>
+              <a href={s.url} target="_blank" rel="noreferrer" style={{ color: s.color, fontSize: 11, marginTop: 4 }}>{s.url.replace("https://", "")} ↗</a>
+            </div>
+            {result?.[s.slug]?.productCount && (
+              <div style={{ marginTop: 10, fontSize: 12, color: "#10b981" }}>
+                {result[s.slug].productCount} NY Farm Co products added
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {!fbUser && (
+        <div style={{ padding: "12px 16px", background: "#1a0d00", border: "1px solid #f59e0b40", borderRadius: 10, marginBottom: 12, fontSize: 13, color: "#f59e0b" }}>
+          ⚠️ Firestore writes require a Firebase Auth session. Click <strong>"Sign In"</strong> in the top nav bar (use your admin Google account), then return to this tab and seed.
+        </div>
+      )}
+
+      {status === "idle" && (
+        <button className="btn btn--primary" onClick={handleSeed} disabled={!fbUser} style={!fbUser ? { opacity: .4, cursor: "not-allowed" } : {}}>
+          🏪 Seed Example Storefronts
+        </button>
+      )}
+      {status === "seeding" && (
+        <button className="btn btn--primary" disabled>
+          🌀 Seeding {NY_FARM_CO_PRODUCTS.length} products per store…
+        </button>
+      )}
+      {status === "done" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ color: "#10b981", fontWeight: 600 }}>✅ Done</div>
+          <a href="/catalog/LEAFPLUG" target="_blank" rel="noreferrer" style={{ color: "#38761d", fontSize: 13 }}>View Leaf Plug catalog ↗</a>
+          <a href="/catalog/MARYJANES" target="_blank" rel="noreferrer" style={{ color: "#6d28d9", fontSize: 13 }}>View Mary Jane's catalog ↗</a>
+        </div>
+      )}
+      {status === "error" && (
+        <div style={{ color: "#ef4444" }}>❌ Seeding failed — check console for details.</div>
+      )}
+    </div>
+  );
+}
+
 /* ── Pitch Deck Panel ──────────────────────────────────────────────── */
 const PITCH_CARDS = [
   {
@@ -159,96 +267,6 @@ function PitchDeckPanel() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-/* ── Bulk Import Panel ─────────────────────────────────────────────── */
-function BulkImportPanel({ vendors }) {
-  const [vendorId, setVendorId] = useState("");
-  const [products, setProducts] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [done, setDone] = useState(null);
-  const [error, setError] = useState("");
-
-  const approved = vendors.filter(v => v.status === "approved");
-
-  const loadPreset = () => {
-    setProducts(NY_FARM_CO_PRODUCTS);
-    setDone(null);
-    setError("");
-  };
-
-  const handleImport = async () => {
-    if (!vendorId) { setError("Select a vendor first."); return; }
-    if (!products?.length) { setError("No products loaded."); return; }
-    setImporting(true);
-    setError("");
-    try {
-      const ids = await bulkAddProducts(vendorId, products);
-      setDone(ids.length);
-    } catch (e) {
-      setError(e.message || "Import failed.");
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  return (
-    <div className="adm-import">
-      <h3 className="adm-import__title">📦 Bulk Product Import</h3>
-      <p className="adm-import__hint">Import a product catalog for an approved vendor. All products are marked featured and tagged for recommendation matching.</p>
-
-      <div className="adm-import__row">
-        <div className="adm-import__field">
-          <label>Target Vendor</label>
-          <select value={vendorId} onChange={e => setVendorId(e.target.value)}>
-            <option value="">— select vendor —</option>
-            {approved.map(v => (
-              <option key={v.id} value={v.id}>{v.storeName}</option>
-            ))}
-          </select>
-        </div>
-        <div className="adm-import__field">
-          <label>Product Catalog</label>
-          <button className="btn btn--outline adm-import__preset-btn" onClick={loadPreset}>
-            Load NY Farm Co Menu (144 products)
-          </button>
-        </div>
-      </div>
-
-      {products && (
-        <div className="adm-import__preview">
-          <div className="adm-import__preview-stats">
-            {["Flower","Vape","Pre-Roll","Edible"].map(cat => {
-              const n = products.filter(p => p.category === cat).length;
-              return <span key={cat}><strong>{n}</strong> {cat}</span>;
-            })}
-            <span><strong>{products.length}</strong> total</span>
-          </div>
-          <div className="adm-import__preview-list">
-            {products.slice(0, 8).map((p, i) => (
-              <div key={i} className="adm-import__preview-item">
-                <span className="adm-import__preview-cat">{p.category}</span>
-                <span>{p.name}</span>
-                {p.thcPct && <span className="adm-import__preview-thc">THC {p.thcPct}%</span>}
-              </div>
-            ))}
-            {products.length > 8 && <div className="adm-import__preview-more">…and {products.length - 8} more</div>}
-          </div>
-        </div>
-      )}
-
-      {error && <p className="adm-import__error">{error}</p>}
-      {done !== null && <p className="adm-import__success">✓ {done} products imported successfully!</p>}
-
-      <button
-        className="btn btn--primary adm-import__submit"
-        onClick={handleImport}
-        disabled={importing || !products || !vendorId}
-      >
-        {importing ? `Importing…` : `Import ${products?.length ?? 0} Products`}
-      </button>
     </div>
   );
 }
@@ -488,6 +506,14 @@ export default function AdminPortal() {
 
   const handleTierChange = async (id, tier) => {
     await updateVendorTier(id, tier);
+    if (tier !== "free") {
+      const v = vendors.find((v) => v.id === id);
+      logActivity("vendor_subscribed", {
+        storeName: v?.storeName,
+        tier,
+        city: v?.city,
+      });
+    }
     await load();
   };
 
@@ -497,8 +523,8 @@ export default function AdminPortal() {
     { id: "approved", label: `Approved (${byStatus("approved").length})` },
     { id: "rejected", label: `Rejected (${byStatus("rejected").length})` },
     { id: "all",      label: `All (${vendors.length})` },
-    { id: "import",   label: `Import Products` },
-    { id: "pitches",  label: `🎯 Pitch Decks` },
+    { id: "pitches",     label: `🎯 Pitch Decks` },
+    { id: "storefronts", label: `🏪 Storefronts` },
   ];
   const statusMap = { pending: "pending_verification", approved: "approved", rejected: "rejected", all: null };
   const shown = tab === "all" ? vendors : vendors.filter((v) => v.status === statusMap[tab]);
@@ -553,8 +579,8 @@ export default function AdminPortal() {
 
         {tab === "pitches" ? (
           <PitchDeckPanel />
-        ) : tab === "import" ? (
-          <BulkImportPanel vendors={vendors} />
+        ) : tab === "storefronts" ? (
+          <StorefrontSeedPanel />
         ) : (
           <>
             {loading && <div className="app-loading" style={{ minHeight: 200 }}>🌿</div>}

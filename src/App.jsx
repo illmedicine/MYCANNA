@@ -19,7 +19,11 @@ import Privacy from "./pages/Privacy.jsx";
 import Merch from "./pages/Merch.jsx";
 import StoreCatalog from "./pages/StoreCatalog.jsx";
 import PitchDeck from "./pages/PitchDeck.jsx";
+import StaffPortal from "./pages/StaffPortal.jsx";
+import FounderCalc from "./pages/FounderCalc.jsx";
 import LiveActivity from "./components/LiveActivity.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
+import AgeGate from "./components/AgeGate.jsx";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -32,8 +36,10 @@ function AppRoutes() {
 
   return (
     <>
+      <AgeGate />
       <Navbar />
       <LiveActivity />
+      <InstallPrompt />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
@@ -48,7 +54,9 @@ function AppRoutes() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/log" element={<ProtectedRoute><LogExperience /></ProtectedRoute>} />
         <Route path="/catalog/:slug" element={<StoreCatalog />} />
+        <Route path="/staff-edu/:slug" element={<StaffPortal />} />
         <Route path="/pitch/:perspective" element={<PitchDeck />} />
+        <Route path="/partner" element={<FounderCalc />} />
         <Route path="/merch" element={<Merch />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />

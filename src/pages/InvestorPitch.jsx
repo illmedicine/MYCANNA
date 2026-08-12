@@ -1,5 +1,13 @@
 import './InvestorPitch.css';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext.jsx';
+
+const ADMIN_EMAILS = [
+  'dwilson@illyrobotic-ai.com',
+  'jcgstone@yahoo.com',
+  'jcgstone@gmail.com',
+  'demarkuswilsone@gmail.com',
+];
 
 const fmt  = (n) => n.toLocaleString();
 const fmtK = (n) => (n >= 1000 ? '$' + (n / 1000).toFixed(0) + 'K' : '$' + n);
@@ -206,6 +214,9 @@ const DAO_SCENARIOS = [
 
 /* ── Component ───────────────────────────────────────────────────── */
 export default function InvestorPitch() {
+  const { user } = useAuth();
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+
   return (
     <div className="inv-wrap">
 
@@ -601,6 +612,19 @@ export default function InvestorPitch() {
         <Link to="/" className="inv-footer__link">mycana.info</Link>
         <span>·</span>
         <span>For accredited investor review only · Not a public securities offering · Data projections are estimates</span>
+        {isAdmin && (
+          <>
+            <span>·</span>
+            <Link
+              to="/partner"
+              className="inv-footer__link"
+              title="Founder Revenue Calculator"
+              style={{ opacity: 0.35, fontSize: '0.8rem' }}
+            >
+              🧮
+            </Link>
+          </>
+        )}
       </footer>
 
     </div>
