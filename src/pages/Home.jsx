@@ -89,6 +89,75 @@ const STEPS = [
   { n: '03', title: 'Get Your Profile', desc: 'Receive a detailed cannabis profile with tailored guidance on what to look for.' },
 ];
 
+const VENDOR_TIERS = [
+  {
+    id: 'free',
+    name: 'Free Listing',
+    price: '$0',
+    period: '/mo',
+    tagline: 'Get on the map at no cost',
+    color: '#64748b',
+    featured: false,
+    cta: 'List My Store Free',
+    features: [
+      { text: 'Store profile page',          yes: true  },
+      { text: 'Up to 10 products',           yes: true  },
+      { text: 'Standard search ranking',     yes: true  },
+      { text: 'Community reviews',           yes: true  },
+      { text: 'Analytics dashboard',         yes: false },
+      { text: 'Profile-matched ranking',     yes: false },
+      { text: 'Deals & menu features',       yes: false },
+      { text: 'Store Catalog management',    yes: false },
+      { text: 'B2B Supplier Portal',         yes: false },
+      { text: 'Staff EDU program',           yes: false },
+    ],
+  },
+  {
+    id: 'standard',
+    name: 'Standard',
+    price: '$49',
+    period: '/mo',
+    tagline: 'Grow your reach & visibility',
+    color: '#d4a843',
+    featured: false,
+    cta: 'Start Standard',
+    features: [
+      { text: 'Store profile page',          yes: true  },
+      { text: 'Unlimited products',          yes: true  },
+      { text: 'Profile-matched ranking',     yes: true  },
+      { text: 'Community reviews',           yes: true  },
+      { text: 'Analytics dashboard',         yes: true  },
+      { text: 'Deals & menu features',       yes: true  },
+      { text: 'Store Catalog management',    yes: false },
+      { text: 'B2B Supplier Portal',         yes: false },
+      { text: 'Staff EDU program',           yes: false },
+      { text: 'Featured placement in search',yes: false },
+    ],
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    price: '$149',
+    period: '/mo',
+    tagline: 'The complete Mycana platform',
+    color: '#6d28d9',
+    featured: true,
+    cta: 'Go Premium',
+    features: [
+      { text: 'Store profile page',          yes: true },
+      { text: 'Unlimited products',          yes: true },
+      { text: 'Featured placement in search',yes: true },
+      { text: 'Community reviews',           yes: true },
+      { text: 'Full analytics suite',        yes: true },
+      { text: 'Deals & menu features',       yes: true },
+      { text: 'Store Catalog management',    yes: true },
+      { text: 'B2B Supplier Portal',         yes: true },
+      { text: 'Staff EDU program',           yes: true },
+      { text: 'Priority support',            yes: true },
+    ],
+  },
+];
+
 export default function Home() {
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
@@ -264,6 +333,60 @@ export default function Home() {
                   <h3 className="step__title">{s.title}</h3>
                   <p className="step__desc">{s.desc}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── For Store Owners ── */}
+      <section className="section section--light">
+        <div className="container">
+          <div className="vendor-section-intro">
+            <span className="eyebrow eyebrow--gold">For Dispensaries &amp; Brands</span>
+            <h2 className="section__title">List Your Store on Mycana</h2>
+            <p className="section__body">
+              Mycana sends you the right customers — shoppers who've already mapped their exact
+              cannabis preferences and are actively looking for products that match their profile.
+              Every visitor arrives pre-qualified. Choose the plan that fits your stage.
+            </p>
+          </div>
+
+          <div className="vendor-tiers">
+            {VENDOR_TIERS.map((tier) => (
+              <div
+                key={tier.id}
+                className={`vendor-tier${tier.featured ? ' vendor-tier--featured' : ''}`}
+              >
+                {tier.featured && (
+                  <div className="vendor-tier__popular">Most Popular</div>
+                )}
+                <div className="vendor-tier__head">
+                  <div className="vendor-tier__name" style={{ color: tier.color }}>{tier.name}</div>
+                  <div className="vendor-tier__price">
+                    {tier.price}<span className="vendor-tier__period">{tier.period}</span>
+                  </div>
+                  <p className="vendor-tier__tagline">{tier.tagline}</p>
+                </div>
+                <hr className="vendor-tier__divider" />
+                <ul className="vendor-tier__features">
+                  {tier.features.map((f) => (
+                    <li
+                      key={f.text}
+                      className={`vendor-tier__feat vendor-tier__feat--${f.yes ? 'yes' : 'no'}`}
+                    >
+                      <span className="vendor-tier__check">{f.yes ? '✓' : '—'}</span>
+                      {f.text}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/vendor"
+                  className={`btn ${tier.featured ? 'btn--primary' : 'btn--outline'} btn--sm`}
+                  style={{ textAlign: 'center' }}
+                >
+                  {tier.cta}
+                </Link>
               </div>
             ))}
           </div>
