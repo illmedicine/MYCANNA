@@ -1,0 +1,439 @@
+/* ── Contact Page ── */
+
+/* ── Page shell ── */
+.ct-pg {
+  min-height: 100vh;
+  padding: 20px 20px 60px;
+  padding-top: calc(var(--nav-h, 60px) + 28px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+/* Sales — warm cream/linen with dot texture */
+.ct-pg--sales {
+  background-color: #f5ead6;
+  background-image: radial-gradient(#e5d5ba 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  color: #2a1f0e;
+}
+
+/* Tech — deep forest green with subtle grid */
+.ct-pg--tech {
+  background-color: #192e22;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: #d4ead8;
+}
+
+.ct-wrap {
+  max-width: 900px;
+  width: 100%;
+}
+
+/* ── Page title ── */
+.ct-page-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.ct-pg--sales .ct-title-accent { color: #cba85a; }
+.ct-pg--tech  .ct-title-accent { color: #7dbf8a; }
+
+/* ── Toggle bar ── */
+.ct-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.ct-toggle-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  transition: opacity 0.25s, color 0.25s;
+  user-select: none;
+}
+
+.ct-toggle-lbl--active { opacity: 1; }
+.ct-pg--sales .ct-toggle-lbl--active { color: #a07820; }
+.ct-pg--tech  .ct-toggle-lbl--active { color: #7dbf8a; }
+
+/* The switch */
+.ct-toggle {
+  position: relative;
+  width: 76px;
+  height: 38px;
+  border-radius: 19px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.ct-toggle::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 22px;
+  border: 2px dashed;
+  pointer-events: none;
+}
+.ct-pg--sales .ct-toggle::after { border-color: rgba(203,168,90,0.55); }
+.ct-pg--tech  .ct-toggle::after { border-color: rgba(125,191,138,0.4); }
+
+.ct-toggle__track {
+  position: absolute;
+  inset: 0;
+  border-radius: 19px;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.08);
+  transition: background-color 0.35s ease;
+}
+
+.ct-toggle--left  .ct-toggle__track { background: linear-gradient(135deg, #6b4800, #a07020); }
+.ct-toggle--right .ct-toggle__track { background: linear-gradient(135deg, #1a3829, #2d5a3d); }
+
+/* Knob — same conic metallic sphere as the sliders */
+.ct-toggle__knob {
+  position: absolute;
+  top: 5px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: conic-gradient(#b8c6b7, #7a907b, #d9e3d9, #546a56, #b8c6b7);
+  border: 2px solid #e2e8e2;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.ct-toggle--left  .ct-toggle__knob { left: 5px; }
+.ct-toggle--right .ct-toggle__knob { left: 43px; }
+
+/* ── Main card ── */
+.ct-card {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 28px;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  border: 3px dashed;
+  transition: background-color 0.45s, border-color 0.45s, box-shadow 0.45s;
+  outline-width: 6px;
+  outline-style: solid;
+  outline-offset: -1px;
+}
+
+.ct-pg--sales .ct-card {
+  background: #faf3e5;
+  border-color: #cba85a;
+  box-shadow: 0 10px 40px rgba(180,140,50,0.18);
+  outline-color: #f5ead6;
+}
+
+.ct-pg--tech .ct-card {
+  background: #234c32;
+  border-color: #3d6e4e;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+  outline-color: #192e22;
+}
+
+/* ── Left — avatar + identity ── */
+.ct-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.ct-avatar-wrap {
+  width: 170px;
+  height: 170px;
+  border-radius: 18px;
+  border: 3px dashed;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ct-pg--sales .ct-avatar-wrap {
+  background: #f0e5d0;
+  border-color: #cba85a;
+}
+
+.ct-pg--tech .ct-avatar-wrap {
+  background: #e8dccb;
+  border-color: #5a9e6a;
+}
+
+.ct-avatar {
+  width: 100%;
+  max-width: 148px;
+  height: 148px;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.32));
+}
+
+.ct-name {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+.ct-pg--sales .ct-name { color: #2a1a00; }
+.ct-pg--tech  .ct-name { color: #e0f0e0; }
+
+.ct-role {
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.ct-pg--sales .ct-role { color: #7a5c20; }
+.ct-pg--tech  .ct-role { color: #7dbf8a; }
+
+.ct-email-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  transition: opacity 0.2s;
+  word-break: break-all;
+}
+.ct-email-badge:hover { opacity: 0.75; }
+
+.ct-pg--sales .ct-email-badge {
+  color: #7a4a00;
+  border-color: #cba85a;
+  background: rgba(203,168,90,0.12);
+}
+.ct-pg--tech .ct-email-badge {
+  color: #a0d4ac;
+  border-color: #4a8a5a;
+  background: rgba(74,138,90,0.18);
+}
+
+/* ── Right — reasons + CTA ── */
+.ct-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ct-sect-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.ct-pg--sales .ct-sect-label { color: #cba85a; }
+.ct-pg--tech  .ct-sect-label { color: #7dbf8a; }
+
+/* Reason list */
+.ct-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ct-reason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px dashed;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.ct-pg--sales .ct-reason {
+  background: rgba(203,168,90,0.07);
+  border-color: rgba(203,168,90,0.38);
+  color: #2a1a00;
+}
+.ct-pg--sales .ct-reason:hover {
+  background: rgba(203,168,90,0.14);
+}
+
+.ct-pg--tech .ct-reason {
+  background: rgba(125,191,138,0.09);
+  border-color: rgba(125,191,138,0.28);
+  color: #d4ead8;
+}
+.ct-pg--tech .ct-reason:hover {
+  background: rgba(125,191,138,0.16);
+}
+
+.ct-reason__icon { font-size: 15px; }
+
+.ct-tagline {
+  font-size: 12.5px;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.55;
+}
+.ct-pg--sales .ct-tagline { color: #7a5c20; }
+.ct-pg--tech  .ct-tagline { color: #7dbf8a; }
+
+/* CTA button */
+.ct-cta-btn {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  text-align: center;
+  border: 2px dashed;
+  transition: transform 0.15s, box-shadow 0.15s;
+  align-self: flex-start;
+}
+.ct-cta-btn:hover  { transform: translateY(-2px); }
+.ct-cta-btn:active { transform: translateY(0); }
+
+.ct-pg--sales .ct-cta-btn {
+  background: #cba85a;
+  border-color: #b08030;
+  color: #1a0e00;
+  box-shadow: 0 6px 20px rgba(203,168,90,0.4);
+}
+.ct-pg--sales .ct-cta-btn:hover {
+  box-shadow: 0 10px 28px rgba(203,168,90,0.55);
+}
+
+.ct-pg--tech .ct-cta-btn {
+  background: #3d6e4e;
+  border-color: #5aaa70;
+  color: #d4f0d8;
+  box-shadow: 0 6px 20px rgba(61,110,78,0.5);
+}
+.ct-pg--tech .ct-cta-btn:hover {
+  box-shadow: 0 10px 28px rgba(61,110,78,0.65);
+}
+
+/* ── QR section — Business Card ── */
+.ct-qr-section {
+  display: flex;
+  justify-content: center;
+}
+
+.ct-qr-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 36px;
+  border-radius: 20px;
+  border: 3px dashed;
+  text-align: center;
+  min-width: 260px;
+  transition: background-color 0.45s, border-color 0.45s;
+}
+
+.ct-pg--sales .ct-qr-frame {
+  background: #faf3e5;
+  border-color: #cba85a;
+  box-shadow: 0 6px 24px rgba(180,140,50,0.15);
+}
+.ct-pg--tech .ct-qr-frame {
+  background: #234c32;
+  border-color: #3d6e4e;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+
+.ct-qr-eyebrow {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.ct-pg--sales .ct-qr-eyebrow { color: #cba85a; }
+.ct-pg--tech  .ct-qr-eyebrow { color: #7dbf8a; }
+
+.ct-qr-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 10px;
+}
+
+.ct-qr-placeholder {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  opacity: 0.4;
+}
+
+.ct-qr-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+.ct-pg--sales .ct-qr-name { color: #2a1a00; }
+.ct-pg--tech  .ct-qr-name { color: #e0f0e0; }
+
+.ct-qr-email {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* ── Responsive ── */
+@media (max-width: 660px) {
+  .ct-card {
+    grid-template-columns: 1fr;
+  }
+  .ct-identity {
+    order: -1;
+  }
+  .ct-avatar-wrap {
+    width: 140px;
+    height: 140px;
+  }
+  .ct-avatar {
+    height: 120px;
+  }
+  .ct-toggle-lbl {
+    font-size: 10.5px;
+  }
+  .ct-page-title {
+    font-size: 20px;
+  }
+  .ct-cta-btn {
+    align-self: stretch;
+    text-align: center;
+  }
+}
+
+@media (min-width: 661px) and (max-width: 780px) {
+  .ct-card {
+    grid-template-columns: 200px 1fr;
+    padding: 24px;
+    gap: 20px;
+  }
+  .ct-avatar-wrap { width: 150px; height: 150px; }
+}

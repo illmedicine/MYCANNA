@@ -21,6 +21,7 @@ import StoreCatalog from "./pages/StoreCatalog.jsx";
 import PitchDeck from "./pages/PitchDeck.jsx";
 import StaffPortal from "./pages/StaffPortal.jsx";
 import FounderCalc from "./pages/FounderCalc.jsx";
+import Contact from "./pages/Contact.jsx";
 import LiveActivity from "./components/LiveActivity.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import AgeGate from "./components/AgeGate.jsx";
@@ -57,6 +58,9 @@ function AppRoutes() {
         <Route path="/staff-edu/:slug" element={<StaffPortal />} />
         <Route path="/pitch/:perspective" element={<PitchDeck />} />
         <Route path="/partner" element={<FounderCalc />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/contact/sales" element={<Contact />} />
+        <Route path="/contact/tech" element={<Contact />} />
         <Route path="/merch" element={<Merch />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<Navigate to="/" replace />} />
