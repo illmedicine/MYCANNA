@@ -97,6 +97,14 @@ export default function Contact() {
   const isTech    = location.pathname.includes('/tech');
   const panel     = isTech ? PANELS.tech : PANELS.sales;
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  function copyEmail() {
+    navigator.clipboard.writeText(panel.email).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    }).catch(() => {});
+  }
 
   // Redirect bare /contact → /contact/sales
   useEffect(() => {
@@ -183,9 +191,14 @@ export default function Contact() {
               ))}
             </ul>
             <p className="ct-tagline">{panel.tagline}</p>
-            <a href={mailto} className="ct-cta-btn">
-              {panel.cta} →
-            </a>
+            <div className="ct-action-row">
+              <a href={mailto} className="ct-cta-btn">
+                {panel.cta} →
+              </a>
+              <button className="ct-copy-btn" onClick={copyEmail} aria-label="Copy email address">
+                {copied ? '✓ Copied' : 'Copy Email'}
+              </button>
+            </div>
           </div>
 
         </div>{/* /ct-card */}
