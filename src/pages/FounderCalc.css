@@ -319,9 +319,22 @@
 .fc-box__role-title { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.4; }
 .fc-box__role-name  { font-size: 11px; font-weight: 400; color: #b0c2b5; }
 
-/* ── Avatar images ── */
-/* mix-blend-mode: multiply makes white pixels absorb the dark green background,
-   creating a floating effect. brightness + contrast compensate for darkening. */
+/* Role cards — cream background matches the avatar's own background so
+   the characters sit naturally without blend tricks. Text flips to dark. */
+.fc-box--role {
+  background: #e8dccb;
+  border-color: #c4ad8a;
+}
+
+.fc-box--role .fc-box__role-title {
+  color: #1b3824;
+}
+
+.fc-box--role .fc-box__role-name {
+  color: #4a6b54;
+}
+
+/* ── Avatar images — no blend needed; role box bg matches avatar bg ── */
 .fc-avatar--card {
   width: 100%;
   max-width: 110px;
@@ -330,8 +343,7 @@
   object-position: bottom;
   display: block;
   margin: 0 auto;
-  mix-blend-mode: multiply;
-  filter: brightness(1.45) contrast(1.08) drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.35));
 }
 
 .fc-avatar--circle {
@@ -339,8 +351,6 @@
   height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  mix-blend-mode: multiply;
-  filter: brightness(1.4) contrast(1.08) drop-shadow(0 3px 6px rgba(0,0,0,0.4));
 }
 
 /* ── Center column ── */
@@ -364,7 +374,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: conic-gradient(var(--primary) 0% 50%, #3a6b4a 50% 100%);
+  background: conic-gradient(#e8dccb 0% 50%, #d8ccbb 50% 100%);
   border: 4px dashed var(--accent-gold);
   box-shadow: 0 10px 15px rgba(0,0,0,0.4);
   display: flex;
