@@ -320,6 +320,8 @@
 .fc-box__role-name  { font-size: 11px; font-weight: 400; color: #b0c2b5; }
 
 /* ── Avatar images ── */
+/* mix-blend-mode: multiply makes white pixels absorb the dark green background,
+   creating a floating effect. brightness + contrast compensate for darkening. */
 .fc-avatar--card {
   width: 100%;
   max-width: 110px;
@@ -328,7 +330,8 @@
   object-position: bottom;
   display: block;
   margin: 0 auto;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  mix-blend-mode: multiply;
+  filter: brightness(1.45) contrast(1.08) drop-shadow(0 6px 10px rgba(0,0,0,0.5));
 }
 
 .fc-avatar--circle {
@@ -336,7 +339,8 @@
   height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  mix-blend-mode: multiply;
+  filter: brightness(1.4) contrast(1.08) drop-shadow(0 3px 6px rgba(0,0,0,0.4));
 }
 
 /* ── Center column ── */
