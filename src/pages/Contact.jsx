@@ -23,21 +23,6 @@ function playClick() {
   } catch {}
 }
 
-function makeVCard(name, title, email) {
-  const [last, ...first] = name.split(' ').reverse();
-  return [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    `FN:${name}`,
-    `N:${last};${first.reverse().join(' ')};;;`,
-    `TITLE:${title}`,
-    'ORG:Mycana',
-    `EMAIL:${email}`,
-    'URL:https://mycana.info',
-    'END:VCARD',
-  ].join('\n');
-}
-
 const PANELS = {
   sales: {
     key: 'sales',
@@ -48,11 +33,7 @@ const PANELS = {
     avatar: '/avatars/johnavatar.png',
     email: 'jcgstone@yahoo.com',
     emailSubject: 'Mycana Business Inquiry',
-    qrContent: makeVCard(
-      'John C Girdlestone',
-      'Co-Founder, Chief Marketing Strategist',
-      'jcgstone@yahoo.com'
-    ),
+    qrContent: 'https://mycana.info/contact/sales',
     reasons: [
       { icon: '📣', text: 'Brand Partnerships & Co-Marketing' },
       { icon: '🏪', text: 'Retail & Dispensary Advertising' },
@@ -73,11 +54,7 @@ const PANELS = {
     avatar: '/avatars/demarkusavatar.png',
     email: 'dwilson@illyrobotic-ai.com',
     emailSubject: 'Mycana Technical Support',
-    qrContent: makeVCard(
-      'DeMarkus D Wilson',
-      'Co-Founder, CTO & Lead Engineer',
-      'dwilson@illyrobotic-ai.com'
-    ),
+    qrContent: 'https://mycana.info/contact/tech',
     reasons: [
       { icon: '📦', text: 'Bulk Product Catalog Onboarding' },
       { icon: '💡', text: 'Feature Requests & Roadmap Ideas' },
@@ -111,17 +88,47 @@ export default function Contact() {
     if (location.pathname === '/contact') navigate('/contact/sales', { replace: true });
   }, [location.pathname, navigate]);
 
-  // Regenerate QR whenever panel switches
+  // Regenerate QR whenever panel switches — URL-based with Mycana logo overlay
   useEffect(() => {
+    const SIZE = 260;
+    const LOGO = 72;
+    const lightBg = isTech ? '#c8e0cc' : '#faf3e5';
+
     QRCode.toDataURL(panel.qrContent, {
-      width: 220,
+      width: SIZE,
       margin: 2,
-      errorCorrectionLevel: 'M',
-      color: {
-        dark:  isTech ? '#1a3329' : '#5c3d00',
-        light: isTech ? '#c8e0cc' : '#faf3e5',
-      },
-    }).then(setQrDataUrl).catch(() => {});
+      errorCorrectionLevel: 'H',
+      color: { dark: isTech ? '#1a3329' : '#5c3d00', light: lightBg },
+    }).then(qrUrl => {
+      const qrImg   = new Image();
+      const logoImg = new Image();
+      let qrReady   = false;
+      let logoReady = false;
+
+      const composite = () => {
+        if (!qrReady || !logoReady) return;
+        const cv = document.createElement('canvas');
+        cv.width  = SIZE;
+        cv.height = SIZE;
+        const ctx = cv.getContext('2d');
+        ctx.drawImage(qrImg, 0, 0, SIZE, SIZE);
+        const lx = (SIZE - LOGO) / 2;
+        const ly = (SIZE - LOGO) / 2;
+        ctx.beginPath();
+        ctx.arc(lx + LOGO / 2, ly + LOGO / 2, LOGO / 2 + 8, 0, Math.PI * 2);
+        ctx.fillStyle = lightBg;
+        ctx.fill();
+        ctx.drawImage(logoImg, lx, ly, LOGO, LOGO);
+        setQrDataUrl(cv.toDataURL('image/png'));
+      };
+
+      qrImg.onload  = () => { qrReady   = true; composite(); };
+      logoImg.onload = () => { logoReady = true; composite(); };
+      logoImg.onerror = () => setQrDataUrl(qrUrl);
+
+      qrImg.src   = qrUrl;
+      logoImg.src = '/icon-512.png';
+    }).catch(() => {});
   }, [panel.qrContent, isTech]);
 
   function handleToggle() {
@@ -206,7 +213,7 @@ export default function Contact() {
         {/* ── QR Business Card ── */}
         <div className="ct-qr-section">
           <div className="ct-qr-frame">
-            <div className="ct-qr-eyebrow">BUSINESS CARD — SCAN TO SAVE CONTACT</div>
+            <div className="ct-qr-eyebrow">SCAN TO OPEN CONTACT PAGE</div>
             {qrDataUrl
               ? <img src={qrDataUrl} alt={`Contact QR for ${panel.person}`} className="ct-qr-img" />
               : <div className="ct-qr-placeholder">Generating…</div>

@@ -162,33 +162,23 @@
 
 .ct-avatar-wrap {
   width: 170px;
-  height: 170px;
-  border-radius: 18px;
-  border: 3px dashed;
+  height: 180px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  overflow: hidden;
-}
-
-.ct-pg--sales .ct-avatar-wrap {
-  background: #f0e5d0;
-  border-color: #cba85a;
-}
-
-.ct-pg--tech .ct-avatar-wrap {
-  background: #e8dccb;
-  border-color: #5a9e6a;
+  overflow: visible;
+  background: transparent;
+  border: none;
 }
 
 .ct-avatar {
   width: 100%;
-  max-width: 148px;
-  height: 148px;
+  max-width: 155px;
+  height: 155px;
   object-fit: contain;
   object-position: bottom center;
   display: block;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.32));
+  mix-blend-mode: multiply;
 }
 
 .ct-name {
@@ -409,8 +399,8 @@
 .ct-pg--tech  .ct-qr-eyebrow { color: #7dbf8a; }
 
 .ct-qr-img {
-  width: 180px;
-  height: 180px;
+  width: 210px;
+  height: 210px;
   border-radius: 10px;
 }
 
