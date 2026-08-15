@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { logExperience } from "../services/experienceService.js";
@@ -10,7 +10,57 @@ import {
   mapAIDataToProduct,
   isConfigured as aiIsConfigured,
 } from "../services/aiScrape.js";
+import { NY_DISPENSARIES } from "../data/nyDispensaries.js";
 import BiSlider from "../components/BiSlider.jsx";
+
+// ── Searchable NY dispensary dropdown ────────────────────────────────────────
+function StorefrontDropdown({ value, onChange }) {
+  const [query,  setQuery]  = useState(value || "");
+  const [open,   setOpen]   = useState(false);
+  const wrapRef = useRef(null);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return NY_DISPENSARIES.slice(0, 8);
+    return NY_DISPENSARIES
+      .filter(d => d.name.toLowerCase().includes(q))
+      .slice(0, 10);
+  }, [query]);
+
+  const select = (d) => {
+    setQuery(d.name);
+    onChange(d.name);
+    setOpen(false);
+  };
+
+  const handleBlur = () => {
+    // Delay so click on option fires first
+    setTimeout(() => setOpen(false), 150);
+  };
+
+  return (
+    <div className="storefront-wrap" ref={wrapRef}>
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={handleBlur}
+        placeholder="Search dispensary name…"
+        autoComplete="off"
+      />
+      {open && matches.length > 0 && (
+        <ul className="storefront-list">
+          {matches.map(d => (
+            <li key={d.name} className="storefront-list__item" onMouseDown={() => select(d)}>
+              <span className="storefront-list__name">{d.name}</span>
+              <span className="storefront-list__city">{d.city}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 const SLIDERS = [
   { id: "effect",          label: "Effect Direction",   leftLabel: "Relaxing",       rightLabel: "Energizing",         leftEmoji: "🌙", rightEmoji: "⚡",  leftColor: "#6d28d9", rightColor: "#f59e0b" },
@@ -105,10 +155,12 @@ export default function LogExperience() {
   // Product data from scan + AI
   const [packageData, setPackageData] = useState(null);
   const [product, setProduct] = useState({
-    name: "", strain: "", vendor: "", cultivator: "",
-    thcPct: "", cbdPct: "", category: "flower",
+    name: "", strain: "", vendor: "", cultivator: "", storefront: "",
+    thcPct: "", cbdPct: "", tacPct: "", thcvPct: "", thcMg: "",
+    category: "flower",
     terpenes: [], batchNumber: "", testDate: "",
-    ocmLicense: "", expirationDate: "", netWeight: "",
+    ocmLicense: "", expirationDate: "", netWeight: "", servings: "",
+    processorAddress: "", contactEmail: "",
   });
 
   const [sliders, setSliders] = useState(() =>
@@ -274,15 +326,21 @@ export default function LogExperience() {
         productName:     product.name,
         strainName:      product.strain,
         vendor:          product.vendor,
+        storefront:      product.storefront || null,
         cultivator:      product.cultivator,
         category:        product.category,
         thcPct:          parseFloat(product.thcPct) || null,
         cbdPct:          parseFloat(product.cbdPct) || null,
+        tacPct:          parseFloat(product.tacPct) || null,
+        thcvPct:         parseFloat(product.thcvPct) || null,
+        thcMg:           parseFloat(product.thcMg) || null,
         terpenes:        product.terpenes,
         batchNumber:     product.batchNumber,
         testDate:        product.testDate,
         ocmLicense:      product.ocmLicense,
         expirationDate:  product.expirationDate,
+        netWeight:       product.netWeight || null,
+        servings:        parseInt(product.servings) || null,
         packageTag:      packageData?.packageTag  ?? null,
         sourceUrl:       packageData?.sourceUrl   ?? null,
         qrVerified:      packageData?.qrVerified  ?? false,
@@ -327,7 +385,7 @@ export default function LogExperience() {
               setStep(0);
               setPhotos([]); setPreviews([]); setProcessing(false); setProcSteps([]);
               setPackageData(null);
-              setProduct({ name: "", strain: "", vendor: "", cultivator: "", thcPct: "", cbdPct: "", category: "flower", terpenes: [], batchNumber: "", testDate: "", ocmLicense: "", expirationDate: "", netWeight: "" });
+              setProduct({ name: "", strain: "", vendor: "", cultivator: "", storefront: "", thcPct: "", cbdPct: "", tacPct: "", thcvPct: "", thcMg: "", category: "flower", terpenes: [], batchNumber: "", testDate: "", ocmLicense: "", expirationDate: "", netWeight: "", servings: "", processorAddress: "", contactEmail: "" });
               setNotes({ overall: "", effects: "", wouldBuyAgain: null, rating: 0 });
             }}>Log Another</button>
             <button className="btn btn--primary" onClick={() => navigate("/dashboard")}>My Dashboard →</button>
@@ -480,7 +538,6 @@ export default function LogExperience() {
                 : "Enter the product details from your package label."}
             </p>
 
-            {/* Verified badge */}
             {(packageData?.packageTag || packageData?.ocmLicense || packageData?.sourceUrl) && (
               <VerifiedBadge
                 packageTag={packageData.packageTag}
@@ -490,18 +547,17 @@ export default function LogExperience() {
             )}
 
             {packageData?.aiScanned && (
-              <div className="ai-scrape-success">
-                ✓ Label read by AI — review the fields below
-              </div>
+              <div className="ai-scrape-success">✓ Label read by AI — review the fields below</div>
             )}
 
+            {/* ── Always required ── */}
             <div className="form-row">
               <div className="form-group">
-                <label>Product Name *</label>
-                <input value={product.name} onChange={e => setProd("name", e.target.value)} placeholder="e.g. The Toad" />
+                <label>Product Name <span className="req">*</span></label>
+                <input value={product.name} onChange={e => setProd("name", e.target.value)} placeholder="e.g. Holiday" />
               </div>
               <div className="form-group">
-                <label>Category</label>
+                <label>Category <span className="req">*</span></label>
                 <select value={product.category} onChange={e => setProd("category", e.target.value)}>
                   {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
@@ -510,55 +566,134 @@ export default function LogExperience() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Strain Name</label>
-                <input value={product.strain} onChange={e => setProd("strain", e.target.value)} placeholder="e.g. Wedding Cake" />
+                <label>Strain / Flavor Name <span className="req">*</span></label>
+                <input value={product.strain} onChange={e => setProd("strain", e.target.value)} placeholder="e.g. Coffee Break" />
               </div>
               <div className="form-group">
                 <label>Dispensary / Vendor</label>
-                <input value={product.vendor} onChange={e => setProd("vendor", e.target.value)} placeholder="Where did you get it?" />
+                <input value={product.vendor} onChange={e => setProd("vendor", e.target.value)} placeholder="Brand or vendor name" />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>THC %</label>
-                <input value={product.thcPct} onChange={e => setProd("thcPct", e.target.value)}
-                  placeholder="e.g. 28.5" type="number" min="0" max="100" step="0.01" />
-              </div>
-              <div className="form-group">
-                <label>CBD %</label>
-                <input value={product.cbdPct} onChange={e => setProd("cbdPct", e.target.value)}
-                  placeholder="e.g. 1.2" type="number" min="0" max="100" step="0.01" />
-              </div>
+            {/* ── Storefront (always shown, manual) ── */}
+            <div className="form-group">
+              <label>Storefront <span className="req">*</span> <span className="form-label-bonus">Where was it purchased?</span></label>
+              <StorefrontDropdown
+                value={product.storefront}
+                onChange={v => setProd("storefront", v)}
+              />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Cultivator / Manufacturer</label>
-                <input value={product.cultivator} onChange={e => setProd("cultivator", e.target.value)}
-                  placeholder="Grower or processor name" />
+            {/* ── Conditional: THC / CBD (show if AI found either) ── */}
+            {(product.thcPct || product.cbdPct) && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>THC %</label>
+                  <input value={product.thcPct} onChange={e => setProd("thcPct", e.target.value)}
+                    placeholder="e.g. 28.5" type="number" min="0" max="100" step="0.01" />
+                </div>
+                <div className="form-group">
+                  <label>CBD %</label>
+                  <input value={product.cbdPct} onChange={e => setProd("cbdPct", e.target.value)}
+                    placeholder="e.g. 1.2" type="number" min="0" max="100" step="0.01" />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Batch / Lot Number</label>
-                <input value={product.batchNumber} onChange={e => setProd("batchNumber", e.target.value)}
-                  placeholder="From label" />
+            )}
+            {/* Allow manual THC entry if AI didn't find it */}
+            {!product.thcPct && !product.cbdPct && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>THC %</label>
+                  <input value={product.thcPct} onChange={e => setProd("thcPct", e.target.value)}
+                    placeholder="e.g. 28.5" type="number" min="0" max="100" step="0.01" />
+                </div>
+                <div className="form-group">
+                  <label>CBD %</label>
+                  <input value={product.cbdPct} onChange={e => setProd("cbdPct", e.target.value)}
+                    placeholder="e.g. 1.2" type="number" min="0" max="100" step="0.01" />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>OCM License #</label>
-                <input value={product.ocmLicense} onChange={e => setProd("ocmLicense", e.target.value)}
-                  placeholder="e.g. OCM-PROC-24-000119" />
+            {/* ── Conditional extras (only if AI populated) ── */}
+            {(product.tacPct || product.thcvPct || product.thcMg) && (
+              <div className="form-row">
+                {product.tacPct && (
+                  <div className="form-group">
+                    <label>TAC %</label>
+                    <input value={product.tacPct} onChange={e => setProd("tacPct", e.target.value)}
+                      type="number" min="0" max="100" step="0.01" />
+                  </div>
+                )}
+                {product.thcMg && (
+                  <div className="form-group">
+                    <label>THC (mg)</label>
+                    <input value={product.thcMg} onChange={e => setProd("thcMg", e.target.value)}
+                      type="number" min="0" step="0.01" />
+                  </div>
+                )}
               </div>
-              <div className="form-group">
-                <label>Expiration Date</label>
-                <input value={product.expirationDate} onChange={e => setProd("expirationDate", e.target.value)}
-                  placeholder="MM/DD/YYYY" />
-              </div>
-            </div>
+            )}
 
-            {product.terpenes.length > 0 && (
+            {product.cultivator && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Cultivator / Manufacturer</label>
+                  <input value={product.cultivator} onChange={e => setProd("cultivator", e.target.value)}
+                    placeholder="Grower or processor name" />
+                </div>
+                {product.batchNumber && (
+                  <div className="form-group">
+                    <label>Batch / Lot #</label>
+                    <input value={product.batchNumber} onChange={e => setProd("batchNumber", e.target.value)} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!product.cultivator && product.batchNumber && (
+              <div className="form-group">
+                <label>Batch / Lot #</label>
+                <input value={product.batchNumber} onChange={e => setProd("batchNumber", e.target.value)} />
+              </div>
+            )}
+
+            {(product.ocmLicense || product.expirationDate) && (
+              <div className="form-row">
+                {product.ocmLicense && (
+                  <div className="form-group">
+                    <label>OCM License #</label>
+                    <input value={product.ocmLicense} onChange={e => setProd("ocmLicense", e.target.value)} />
+                  </div>
+                )}
+                {product.expirationDate && (
+                  <div className="form-group">
+                    <label>Expiration Date</label>
+                    <input value={product.expirationDate} onChange={e => setProd("expirationDate", e.target.value)}
+                      placeholder="MM/DD/YYYY" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(product.netWeight || product.servings) && (
+              <div className="form-row">
+                {product.netWeight && (
+                  <div className="form-group">
+                    <label>Net Weight</label>
+                    <input value={product.netWeight} onChange={e => setProd("netWeight", e.target.value)} />
+                  </div>
+                )}
+                {product.servings && (
+                  <div className="form-group">
+                    <label>Servings</label>
+                    <input value={product.servings} onChange={e => setProd("servings", e.target.value)} type="number" min="1" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {product.terpenes?.length > 0 && (
               <div className="form-group">
                 <label>Terpene Profile <span className="form-label-bonus">from COA</span></label>
                 <div className="terpene-chips">

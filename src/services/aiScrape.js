@@ -219,21 +219,51 @@ export async function scrapeProductFromScreenshot(imageFile) {
   return result;
 }
 
+// ── Normalise AI category string → web form value ────────────────────────────
+const CATEGORY_NORM = {
+  flower:      "flower",
+  bud:         "flower",
+  preroll:     "preroll",
+  "pre-roll":  "preroll",
+  "pre roll":  "preroll",
+  joint:       "preroll",
+  cone:        "preroll",
+  vape:        "vape",
+  cartridge:   "vape",
+  cart:        "vape",
+  pod:         "vape",
+  distillate:  "vape",
+  concentrate: "concentrate",
+  wax:         "concentrate",
+  shatter:     "concentrate",
+  rosin:       "concentrate",
+  resin:       "concentrate",
+  hash:        "concentrate",
+  edible:      "edible",
+  gummy:       "edible",
+  chocolate:   "edible",
+  beverage:    "edible",
+  tincture:    "tincture",
+  topical:     "topical",
+  capsule:     "capsule",
+};
+
+function normalizeCategory(raw) {
+  if (!raw) return "flower";
+  const key = String(raw).toLowerCase().trim();
+  if (CATEGORY_NORM[key]) return CATEGORY_NORM[key];
+  // partial match: check if any known keyword appears in the string
+  for (const [kw, val] of Object.entries(CATEGORY_NORM)) {
+    if (key.includes(kw)) return val;
+  }
+  return "flower";
+}
+
 // ── Map AI data to the product state shape used by LogExperience ──────────────
 export function mapAIDataToProduct(ai) {
   if (!ai) return {};
 
-  let category = ai.category ?? "flower";
-  if (ai.name && category === "flower") {
-    const n = (ai.name ?? "").toLowerCase();
-    if (n.includes("pre-roll") || n.includes("preroll")) category = "preroll";
-    else if (n.includes("vape") || n.includes("cart"))   category = "vape";
-    else if (n.includes("edible") || n.includes("gummy")) category = "edible";
-    else if (n.includes("concentrate") || n.includes("wax")) category = "concentrate";
-    else if (n.includes("tincture"))  category = "tincture";
-    else if (n.includes("topical"))   category = "topical";
-    else if (n.includes("capsule"))   category = "capsule";
-  }
+  const category = normalizeCategory(ai.category);
 
   return {
     name:              ai.name        ?? "",
@@ -243,19 +273,24 @@ export function mapAIDataToProduct(ai) {
     category,
     thcPct:            ai.thcPct != null ? String(ai.thcPct) : "",
     cbdPct:            ai.cbdPct != null ? String(ai.cbdPct) : "",
+    tacPct:            ai.tacPct != null ? String(ai.tacPct) : "",
+    thcvPct:           ai.thcvPct != null ? String(ai.thcvPct) : "",
+    thcMg:             ai.thcMg != null ? String(ai.thcMg) : "",
     terpenes:          Array.isArray(ai.terpenes) ? ai.terpenes : [],
     terpeneProfiles:   ai.terpeneProfiles ?? {},
     otherCannabinoids: ai.otherCannabinoids ?? {},
     batchNumber:       ai.batchNumber ?? ai.lotNumber ?? "",
     testDate:          ai.testDate ?? ai.packagedOn ?? "",
     netWeight:         ai.netWeight   ?? "",
+    servings:          ai.servings != null ? String(ai.servings) : "",
     packageTag:        ai.packageTag  ?? "",
     labName:           ai.labName     ?? "",
     labLicense:        ai.labLicense  ?? ai.ocmLicense ?? "",
     labTestStatus:     ai.labTestStatus ?? "",
     ocmLicense:        ai.ocmLicense  ?? "",
-    processorAddress:  ai.processorAddress ?? "",
+    processorAddress:  ai.processorAddress ?? ai.manufacturerAddress ?? "",
     expirationDate:    ai.expirationDate ?? "",
+    contactEmail:      ai.contactEmail ?? "",
     qrUrlFromLabel:    ai.qrUrl ?? "",
   };
 }
