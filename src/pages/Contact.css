@@ -171,9 +171,12 @@
   border: none;
 }
 
-/* Light oval gives multiply a bright ground to work against on the dark tech panel */
+/* Light oval gives multiply a bright local ground on the dark tech panel.
+   isolation:isolate keeps the blend contained to this wrap's background
+   so it doesn't see through to the dark card behind it. */
 .ct-pg--tech .ct-avatar-wrap {
-  background: radial-gradient(ellipse 80% 75% at 50% 60%, #cde8d2 30%, rgba(205,232,210,0.5) 60%, transparent 80%);
+  background: radial-gradient(ellipse 95% 90% at 50% 58%, #d2ecd6 0%, #c6e2cc 50%, rgba(198,226,204,0.2) 80%, transparent 100%);
+  isolation: isolate;
 }
 
 .ct-avatar {
