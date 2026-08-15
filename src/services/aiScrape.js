@@ -1,14 +1,18 @@
-// ── AI Label & Screenshot Scrape Service ─────────────────────────────────────
-// Two paths:
-//   1. Cloud Function (parseProductScreenshot) — uses Claude Haiku, no browser key needed
-//      Activate: set VITE_FUNCTIONS_URL in .env.local once project is on Blaze plan
-//   2. Gemini Vision — browser-side, requires VITE_GEMINI_API_KEY
-//      Free key at: https://aistudio.google.com/app/apikey
+// ── AI Label Scrape Service ───────────────────────────────────────────────────
+// Primary path: Firebase Cloud Function "analyzeLabel" (Anthropic Claude Haiku)
+//   - API key lives in Firebase Secret Manager — never exposed to the browser
+//   - Requires authenticated user (Firebase enforces this automatically)
+//
+// Fallback: Gemini Vision (VITE_GEMINI_API_KEY in .env.local)
+//   - Browser-side, key is visible in bundle — dev/testing only
 
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../firebase";
+
+// ── Gemini fallback (dev only) ────────────────────────────────────────────────
 const GEMINI_BASE  = "https://generativelanguage.googleapis.com/v1beta";
 const GEMINI_MODEL = "gemini-2.0-flash";
 
-// Prompt for PHYSICAL PRODUCT LABELS (photos of the actual package)
 const LABEL_PROMPT = `This is a photograph of a physical NYS cannabis product label. Extract ALL visible text and return ONLY a JSON object (null for fields not visible):
 
 {
@@ -40,7 +44,6 @@ Rules:
 - For mg values on vapes (e.g. "279.41mg (5.5mg)"): thcMg = total mg in package
 - Return ONLY valid JSON — no markdown fences, no explanation`;
 
-// Prompt for WEBSITE SCREENSHOTS (1A4.com COA pages)
 const SCREENSHOT_PROMPT = `This is a screenshot of a NYS cannabis product COA / track-and-trace page (from app.1a4.com). Extract every piece of product data visible and return ONLY a JSON object (null for fields not visible):
 
 {
@@ -64,6 +67,7 @@ const SCREENSHOT_PROMPT = `This is a screenshot of a NYS cannabis product COA / 
 
 Return ONLY valid JSON — no markdown, no explanation.`;
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -73,14 +77,26 @@ function fileToBase64(file) {
   });
 }
 
-export function isConfigured() {
-  return !!(
-    import.meta.env.VITE_GEMINI_API_KEY ||
-    import.meta.env.VITE_PARSE_FUNCTION_URL
-  );
+// Merge multiple AI results: first non-null value wins for each field
+function mergeResults(results) {
+  const merged = {};
+  for (const result of results) {
+    if (!result) continue;
+    for (const [key, val] of Object.entries(result)) {
+      if (merged[key] == null && val != null && val !== "" && !(Array.isArray(val) && val.length === 0)) {
+        merged[key] = val;
+      }
+    }
+  }
+  return Object.keys(merged).length ? merged : null;
 }
 
-// ── Decode QR code from a still image file ─────────────────────────────────
+// ── isConfigured: always true — Cloud Function is always available ─────────────
+export function isConfigured() {
+  return true;
+}
+
+// ── Decode QR code from a still image file ────────────────────────────────────
 export async function decodeQRFromImage(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -117,37 +133,33 @@ export async function decodeQRFromImage(file) {
   });
 }
 
-// ── Internal: call Cloud Function (Blaze plan) ─────────────────────────────
-async function viaCloudFunction(imageFiles, isLabel = true) {
-  const fnUrl = import.meta.env.VITE_PARSE_FUNCTION_URL;
-  if (!fnUrl) return null;
+// ── Primary: Firebase Cloud Function (Anthropic Claude Haiku) ─────────────────
+// Calls the deployed "analyzeLabel" onCall function — one image at a time,
+// then merges the results so multi-photo labels all contribute fields.
+async function viaFirebaseFunction(imageFiles) {
+  const analyzeLabelFn = httpsCallable(functions, "analyzeLabel", { timeout: 30000 });
 
-  // Send all images in one request (Gemini handles multi-image)
-  const images = await Promise.all(
-    imageFiles.map(async (file) => ({
-      base64: await fileToBase64(file),
-      mimeType: file.type || "image/jpeg",
-    }))
+  const results = await Promise.allSettled(
+    imageFiles.map(async (file) => {
+      const base64    = await fileToBase64(file);
+      const mediaType = file.type || "image/jpeg";
+      const res       = await analyzeLabelFn({ base64, mediaType });
+      return res.data;
+    })
   );
 
-  const res = await fetch(fnUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ images, prompt: isLabel ? "label" : "screenshot" }),
-    signal: AbortSignal.timeout(30000),
-  });
+  const successful = results
+    .filter(r => r.status === "fulfilled" && r.value)
+    .map(r => r.value);
 
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.success ? json.data : null;
+  return successful.length ? mergeResults(successful) : null;
 }
 
-// ── Internal: call Gemini Vision ───────────────────────────────────────────
+// ── Fallback: Gemini Vision (dev/testing only) ────────────────────────────────
 async function viaGemini(imageFiles, prompt) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) return null;
 
-  // Build multi-image parts (all photos in one request)
   const imageParts = await Promise.all(
     imageFiles.map(async (file) => ({
       inline_data: {
@@ -174,42 +186,40 @@ async function viaGemini(imageFiles, prompt) {
 
   if (!res.ok) return null;
   const json = await res.json();
-  const raw = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  const raw  = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
 
   try {
     return JSON.parse(cleaned);
   } catch {
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    return null;
+    return match ? JSON.parse(match[0]) : null;
   }
 }
 
-// ── Public: scrape PHYSICAL LABEL PHOTOS (new primary path) ───────────────
+// ── Public: scrape physical label photos ──────────────────────────────────────
 export async function scrapeLabPhotos(imageFiles) {
   if (!imageFiles?.length) throw new Error("No images provided");
 
-  // Try Cloud Function first, then Gemini
   const result =
-    (await viaCloudFunction(imageFiles, true)) ??
-    (await viaGemini(imageFiles, LABEL_PROMPT));
+    (await viaFirebaseFunction(imageFiles).catch(() => null)) ??
+    (await viaGemini(imageFiles, LABEL_PROMPT).catch(() => null));
 
   if (!result) throw new Error("AI_NOT_CONFIGURED");
   return result;
 }
 
-// ── Public: scrape WEBSITE SCREENSHOT (legacy path, kept for compatibility) ─
+// ── Public: scrape website screenshot (COA pages) ─────────────────────────────
 export async function scrapeProductFromScreenshot(imageFile) {
   const result =
-    (await viaCloudFunction([imageFile], false)) ??
-    (await viaGemini([imageFile], SCREENSHOT_PROMPT));
+    (await viaFirebaseFunction([imageFile]).catch(() => null)) ??
+    (await viaGemini([imageFile], SCREENSHOT_PROMPT).catch(() => null));
 
   if (!result) throw new Error("AI_NOT_CONFIGURED");
   return result;
 }
 
-// ── Map AI/label data to the product state shape used by LogExperience ─────
+// ── Map AI data to the product state shape used by LogExperience ──────────────
 export function mapAIDataToProduct(ai) {
   if (!ai) return {};
 
@@ -225,32 +235,27 @@ export function mapAIDataToProduct(ai) {
     else if (n.includes("capsule"))   category = "capsule";
   }
 
-  // Derive THC% from mg if percentage not present but mg is
-  let thcPct = ai.thcPct != null ? ai.thcPct : null;
-
   return {
     name:              ai.name        ?? "",
     strain:            ai.strain      ?? "",
     vendor:            ai.vendor      ?? ai.dispensary ?? "",
     cultivator:        ai.cultivator  ?? "",
     category,
-    thcPct:            thcPct != null ? String(thcPct) : "",
+    thcPct:            ai.thcPct != null ? String(ai.thcPct) : "",
     cbdPct:            ai.cbdPct != null ? String(ai.cbdPct) : "",
     terpenes:          Array.isArray(ai.terpenes) ? ai.terpenes : [],
     terpeneProfiles:   ai.terpeneProfiles ?? {},
     otherCannabinoids: ai.otherCannabinoids ?? {},
     batchNumber:       ai.batchNumber ?? ai.lotNumber ?? "",
-    testDate:          ai.testDate ?? ai.expirationDate ?? ai.packagedOn ?? "",
+    testDate:          ai.testDate ?? ai.packagedOn ?? "",
     netWeight:         ai.netWeight   ?? "",
     packageTag:        ai.packageTag  ?? "",
     labName:           ai.labName     ?? "",
     labLicense:        ai.labLicense  ?? ai.ocmLicense ?? "",
     labTestStatus:     ai.labTestStatus ?? "",
-    // Label-specific extras stored for display
     ocmLicense:        ai.ocmLicense  ?? "",
     processorAddress:  ai.processorAddress ?? "",
     expirationDate:    ai.expirationDate ?? "",
-    // QR URL found in the image (text printed below QR)
     qrUrlFromLabel:    ai.qrUrl ?? "",
   };
 }

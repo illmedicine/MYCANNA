@@ -215,7 +215,7 @@ export default function LogExperience() {
         updateStep(2, "done", `Fields extracted`);
       } catch (err) {
         if (err.message === "AI_NOT_CONFIGURED") {
-          updateStep(2, "skip", "Add VITE_GEMINI_API_KEY to enable");
+          updateStep(2, "skip", "AI unavailable — check connection");
         } else {
           updateStep(2, "error", "AI couldn't read the label");
         }
@@ -368,7 +368,7 @@ export default function LogExperience() {
               <p className="photo-capture__sub">
                 Take a photo of the label — AI will auto-fill all product data and pull the lab results.
                 {!aiIsConfigured() && (
-                  <span className="photo-capture__ai-note"> QR scan works now; add <code>VITE_GEMINI_API_KEY</code> for full label OCR.</span>
+                  <span className="photo-capture__ai-note"> Sign in to enable AI label scanning.</span>
                 )}
               </p>
             </div>
