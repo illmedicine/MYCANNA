@@ -5,6 +5,26 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "../firebase.js";
 
+// Build a category → imageUrl map from all products in the catalog.
+// Used to show a real product photo on experience cards.
+export async function getCategoryImages() {
+  const snap = await getDocs(query(collection(db, "products"), limit(200)));
+  const result = {};
+  for (const d of snap.docs) {
+    const p = d.data();
+    if (!p.imageUrl || !p.category) continue;
+    // Normalise category to the lowercase form used by LogExperience
+    const cat = p.category
+      .toLowerCase()
+      .trim()
+      .replace(/[-\s]+/g, "")
+      .replace("preroll", "preroll")
+      .replace("pre-roll", "preroll");
+    if (!result[cat]) result[cat] = p.imageUrl;
+  }
+  return result;
+}
+
 export async function getCatalogData(vendorId) {
   const [vendorSnap, productsSnap] = await Promise.all([
     getDoc(doc(db, "vendors", vendorId)),

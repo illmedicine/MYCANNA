@@ -6,6 +6,7 @@ import { ARCHETYPE_AVATARS } from "../components/ArchetypeAvatars.jsx";
 import MedievalBodyMap, { ENDO_REGIONS } from "../components/MedievalBodyMap.jsx";
 import { getConditionsForRegion, getActiveConditionRegions } from "../data/conditionInsights.js";
 import { getUserExperiences } from "../services/experienceService.js";
+import { getCategoryImages } from "../services/catalogService.js";
 import { getUserPrestige } from "../services/prestigeService.js";
 import { saveProfile } from "../services/userService.js";
 import { NY_FARM_CO_PRODUCTS } from "../data/nyFarmCoProducts.js";
@@ -420,7 +421,7 @@ function ArchetypeCard({
                   </div>
                 ) : (
                   <div className="dash-journal__grid">
-                    {experiences.slice(0, 12).map(exp => <ExperienceCard key={exp.id} exp={exp} />)}
+                    {experiences.slice(0, 12).map(exp => <ExperienceCard key={exp.id} exp={exp} categoryImages={categoryImages} />)}
                   </div>
                 )}
               </Collapsible>
@@ -991,18 +992,24 @@ function HealthForm({ initial, onSave, onCancel }) {
 }
 
 // ── Experience card ───────────────────────────────────────────────────────────
-function ExperienceCard({ exp }) {
-  const icon = CATEGORY_ICONS[exp.category] ?? "🌿";
+function ExperienceCard({ exp, categoryImages = {} }) {
+  const icon      = CATEGORY_ICONS[exp.category] ?? "🌿";
+  const thumbUrl  = exp.labelImageUrl || categoryImages[exp.category] || null;
+  const strain    = exp.strainName || exp.strain || "";
+  const storeName = exp.storefront || "";
   const date = exp.createdAt?.toDate
     ? exp.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" })
     : "";
   return (
     <div className="exp-card">
       <div className="exp-card__header">
-        <span className="exp-card__icon">{icon}</span>
+        {thumbUrl
+          ? <img src={thumbUrl} alt="" className="exp-card__thumb" />
+          : <span className="exp-card__icon">{icon}</span>
+        }
         <div className="exp-card__info">
           <div className="exp-card__name">{exp.productName || "Unnamed Product"}</div>
-          {exp.strain && <div className="exp-card__strain">{exp.strain}</div>}
+          {strain && <div className="exp-card__strain">{strain}</div>}
         </div>
         <div className="exp-card__meta">
           {exp.rating > 0 && <div className="exp-card__rating">{"★".repeat(exp.rating)}{"☆".repeat(5 - exp.rating)}</div>}
@@ -1010,11 +1017,12 @@ function ExperienceCard({ exp }) {
         </div>
       </div>
       <div className="exp-card__footer">
-        {exp.vendor && <span className="exp-card__vendor">📍 {exp.vendor}</span>}
+        {storeName && <span className="exp-card__vendor">🏪 {storeName}</span>}
+        {!storeName && exp.vendor && <span className="exp-card__vendor">📍 {exp.vendor}</span>}
         {exp.thcPct && <span className="exp-card__pct">THC {exp.thcPct}%</span>}
         {exp.cbdPct && <span className="exp-card__pct">CBD {exp.cbdPct}%</span>}
         {(exp.overallNotes || exp.notes?.overall) && (() => {
-          const n = exp.overallNotes || exp.notes.overall;
+          const n = exp.overallNotes || exp.notes?.overall;
           return <p className="exp-card__note">{n.slice(0, 90)}{n.length > 90 ? "…" : ""}</p>;
         })()}
       </div>
@@ -1026,9 +1034,10 @@ function ExperienceCard({ exp }) {
 export default function Dashboard() {
   const { user, savedProfile, healthData, updateHealthData, userDocReady } = useAuth();
   const navigate = useNavigate();
-  const [experiences,   setExperiences]   = useState([]);
-  const [insights,      setInsights]      = useState([]);
-  const [loading,       setLoading]       = useState(true);
+  const [experiences,    setExperiences]    = useState([]);
+  const [categoryImages, setCategoryImages] = useState({});
+  const [insights,       setInsights]       = useState([]);
+  const [loading,        setLoading]        = useState(true);
   const [editingHealth, setEditingHealth] = useState(false);
   const [prestige,      setPrestige]      = useState({ points: 0 });
   const [saveError,     setSaveError]     = useState("");
@@ -1036,6 +1045,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     getUserPrestige(user.id).then(pres => setPrestige(pres ?? { points: 0 })).catch(() => {});
+    getCategoryImages().then(setCategoryImages).catch(() => {});
     getUserExperiences(user.id)
       .then(exps => setExperiences(exps))
       .catch(() => {})
@@ -1187,7 +1197,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="dash-journal__grid">
-              {experiences.slice(0, 12).map(exp => <ExperienceCard key={exp.id} exp={exp} />)}
+              {experiences.slice(0, 12).map(exp => <ExperienceCard key={exp.id} exp={exp} categoryImages={categoryImages} />)}
             </div>
           )}
         </Collapsible>

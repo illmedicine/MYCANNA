@@ -4,6 +4,8 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { logExperience } from "../services/experienceService.js";
 import { logActivity } from "../services/activityService.js";
 import { lookupProduct } from "../services/productLookup.js";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase.js";
 import {
   scrapeLabPhotos,
   decodeQRFromImage,
@@ -160,7 +162,7 @@ export default function LogExperience() {
     category: "flower",
     terpenes: [], batchNumber: "", testDate: "",
     ocmLicense: "", expirationDate: "", netWeight: "", servings: "",
-    processorAddress: "", contactEmail: "",
+    processorAddress: "", contactEmail: "", labelImageUrl: "",
   });
 
   const [sliders, setSliders] = useState(() =>
@@ -264,6 +266,17 @@ export default function LogExperience() {
           } catch { /* ignore */ }
         }
 
+        // Upload the first label photo to Storage as a thumbnail
+        try {
+          const file = photos[0];
+          const ext  = file.type === "image/png" ? "png" : "jpg";
+          const path = `experienceLabels/${user.uid || user.id}/${Date.now()}.${ext}`;
+          const sRef = storageRef(storage, path);
+          await uploadBytes(sRef, file);
+          const url  = await getDownloadURL(sRef);
+          aiData = { ...aiData, labelImageUrl: url };
+        } catch { /* non-critical — skip silently */ }
+
         updateStep(2, "done", `Fields extracted`);
       } catch (err) {
         if (err.message === "AI_NOT_CONFIGURED") {
@@ -296,6 +309,7 @@ export default function LogExperience() {
       netWeight:      aiData?.netWeight        || "",
       ocmLicense:     aiData?.ocmLicense       || aiData?.labLicense  || "",
       expirationDate: aiData?.expirationDate   || "",
+      labelImageUrl:  aiData?.labelImageUrl    || "",
     };
 
     setProduct(merged);
@@ -341,6 +355,8 @@ export default function LogExperience() {
         expirationDate:  product.expirationDate,
         netWeight:       product.netWeight || null,
         servings:        parseInt(product.servings) || null,
+        labelImageUrl:   product.labelImageUrl    || null,
+        userDisplayName: user.displayName         || null,
         packageTag:      packageData?.packageTag  ?? null,
         sourceUrl:       packageData?.sourceUrl   ?? null,
         qrVerified:      packageData?.qrVerified  ?? false,
@@ -385,7 +401,7 @@ export default function LogExperience() {
               setStep(0);
               setPhotos([]); setPreviews([]); setProcessing(false); setProcSteps([]);
               setPackageData(null);
-              setProduct({ name: "", strain: "", vendor: "", cultivator: "", storefront: "", thcPct: "", cbdPct: "", tacPct: "", thcvPct: "", thcMg: "", category: "flower", terpenes: [], batchNumber: "", testDate: "", ocmLicense: "", expirationDate: "", netWeight: "", servings: "", processorAddress: "", contactEmail: "" });
+              setProduct({ name: "", strain: "", vendor: "", cultivator: "", storefront: "", thcPct: "", cbdPct: "", tacPct: "", thcvPct: "", thcMg: "", category: "flower", terpenes: [], batchNumber: "", testDate: "", ocmLicense: "", expirationDate: "", netWeight: "", servings: "", processorAddress: "", contactEmail: "", labelImageUrl: "" });
               setNotes({ overall: "", effects: "", wouldBuyAgain: null, rating: 0 });
             }}>Log Another</button>
             <button className="btn btn--primary" onClick={() => navigate("/dashboard")}>My Dashboard →</button>

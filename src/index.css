@@ -1348,6 +1348,32 @@ input { font-family: inherit; }
 .lb-earn-item__action { flex: 1; color: var(--c-text-muted); }
 .lb-earn-item__pts    { font-weight: 700; color: var(--c-primary); white-space: nowrap; }
 
+/* ── Leaderboard: Latest Community Reviews ───────────────────────────────── */
+.lb-reviews { margin-top: 40px; }
+.lb-reviews__title { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 6px; }
+.lb-reviews__sub   { color: var(--c-text-muted); font-size: .85rem; margin-bottom: 20px; }
+.lb-reviews__grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+
+.lb-rev-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: var(--c-bg-card, #fff);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-xl); padding: 14px 16px;
+}
+.lb-rev-card__thumb  { flex-shrink: 0; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.lb-rev-card__img    { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--c-border); }
+.lb-rev-card__icon   { font-size: 1.6rem; }
+.lb-rev-card__body   { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.lb-rev-card__name   { font-size: .9rem; font-weight: 700; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-rev-card__strain { font-size: .78rem; color: var(--c-text-muted); }
+.lb-rev-card__rating { color: var(--c-gold, #f59e0b); font-size: .8rem; letter-spacing: 1px; margin: 2px 0; }
+.lb-rev-card__note   { font-size: .78rem; color: var(--c-text-muted); line-height: 1.45; margin: 2px 0 4px; font-style: italic; }
+.lb-rev-card__meta   { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.lb-rev-card__store  { font-size: .72rem; color: var(--c-text-muted); }
+.lb-rev-card__pct    { font-size: .68rem; font-weight: 700; background: rgba(74,222,128,.1); color: var(--c-primary); border-radius: 4px; padding: 1px 6px; }
+.lb-rev-card__user   { font-size: .72rem; font-weight: 600; color: var(--c-primary); margin-left: auto; }
+.lb-rev-card__date   { font-size: .7rem; color: var(--c-text-muted); }
+
 @media (max-width: 480px) {
   .form-row { grid-template-columns: 1fr; }
   .lb-row   { grid-template-columns: 36px 36px 1fr auto; gap: 8px; }
@@ -3141,6 +3167,13 @@ input { font-family: inherit; }
 
 /* ── Required field asterisk ────────────────────────────────────────────── */
 .req { color: #ef4444; font-weight: 700; margin-left: 2px; }
+
+/* ── Experience card thumbnail image ────────────────────────────────────── */
+.exp-card__thumb {
+  width: 42px; height: 42px; border-radius: 8px;
+  object-fit: cover; flex-shrink: 0;
+  border: 1.5px solid var(--c-border, rgba(0,0,0,.1));
+}
 
 /* ── Storefront searchable dropdown ─────────────────────────────────────── */
 .storefront-wrap { position: relative; }

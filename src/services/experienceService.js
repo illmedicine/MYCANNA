@@ -5,6 +5,16 @@ import {
 import { db } from "../firebase.js";
 import { awardPrestige } from "./prestigeService.js";
 
+export async function getRecentPublicExperiences(n = 20) {
+  const q = query(
+    collection(db, "experiences"),
+    orderBy("createdAt", "desc"),
+    limit(n)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 export async function logExperience(userId, data) {
   const ref = await addDoc(collection(db, "experiences"), {
     ...data,

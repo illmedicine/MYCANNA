@@ -2,15 +2,23 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { getLeaderboard, getUserRank } from "../services/prestigeService.js";
+import { getRecentPublicExperiences } from "../services/experienceService.js";
+import { getCategoryImages } from "../services/catalogService.js";
 
 const RANK_MEDAL = { 1: "🥇", 2: "🥈", 3: "🥉" };
+const CATEGORY_ICONS = {
+  flower: "🌿", vape: "💨", edible: "🍫", concentrate: "💎",
+  tincture: "🧪", topical: "🧴", capsule: "💊", preroll: "🚬",
+};
 
 export default function Leaderboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [board, setBoard] = useState([]);
-  const [userRank, setUserRank] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [board,          setBoard]          = useState([]);
+  const [userRank,       setUserRank]       = useState(null);
+  const [loading,        setLoading]        = useState(true);
+  const [recentReviews,  setRecentReviews]  = useState([]);
+  const [categoryImages, setCategoryImages] = useState({});
 
   useEffect(() => {
     Promise.all([
@@ -21,6 +29,9 @@ export default function Leaderboard() {
       setUserRank(rank);
     }).catch(console.error)
       .finally(() => setLoading(false));
+
+    getRecentPublicExperiences(20).then(setRecentReviews).catch(() => {});
+    getCategoryImages().then(setCategoryImages).catch(() => {});
   }, [user]);
 
   return (
@@ -110,6 +121,48 @@ export default function Leaderboard() {
             Log an Experience Now →
           </button>
         </div>
+
+        {/* ── Latest Reviews ── */}
+        {recentReviews.length > 0 && (
+          <div className="lb-reviews">
+            <h2 className="lb-reviews__title">Latest Community Reviews</h2>
+            <p className="lb-reviews__sub">Real experiences from the Mycana community — anonymized and scientifically logged.</p>
+            <div className="lb-reviews__grid">
+              {recentReviews.map(exp => {
+                const strain    = exp.strainName || exp.strain || "";
+                const storeName = exp.storefront || exp.vendor || "";
+                const thumbUrl  = exp.labelImageUrl || categoryImages[exp.category] || null;
+                const icon      = CATEGORY_ICONS[exp.category] ?? "🌿";
+                const date      = exp.createdAt?.toDate
+                  ? exp.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                  : "";
+                const note      = exp.overallNotes || exp.notes || "";
+                return (
+                  <div key={exp.id} className="lb-rev-card">
+                    <div className="lb-rev-card__thumb">
+                      {thumbUrl
+                        ? <img src={thumbUrl} alt="" className="lb-rev-card__img" />
+                        : <span className="lb-rev-card__icon">{icon}</span>
+                      }
+                    </div>
+                    <div className="lb-rev-card__body">
+                      <div className="lb-rev-card__name">{exp.productName || "Cannabis Product"}</div>
+                      {strain && <div className="lb-rev-card__strain">{strain}</div>}
+                      <div className="lb-rev-card__rating">{"★".repeat(exp.rating || 0)}{"☆".repeat(5 - (exp.rating || 0))}</div>
+                      {note && <p className="lb-rev-card__note">{note.slice(0, 100)}{note.length > 100 ? "…" : ""}</p>}
+                      <div className="lb-rev-card__meta">
+                        {storeName && <span className="lb-rev-card__store">🏪 {storeName}</span>}
+                        {exp.thcPct && <span className="lb-rev-card__pct">THC {exp.thcPct}%</span>}
+                        <span className="lb-rev-card__user">{exp.userDisplayName || "Mycana Member"}</span>
+                        {date && <span className="lb-rev-card__date">{date}</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
