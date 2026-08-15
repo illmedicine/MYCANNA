@@ -171,6 +171,11 @@
   border: none;
 }
 
+/* Light oval gives multiply a bright ground to work against on the dark tech panel */
+.ct-pg--tech .ct-avatar-wrap {
+  background: radial-gradient(ellipse 80% 75% at 50% 60%, #cde8d2 30%, rgba(205,232,210,0.5) 60%, transparent 80%);
+}
+
 .ct-avatar {
   width: 100%;
   max-width: 155px;
@@ -178,8 +183,12 @@
   object-fit: contain;
   object-position: bottom center;
   display: block;
-  mix-blend-mode: multiply;
 }
+
+/* Multiply removes white PNG backgrounds on light backgrounds */
+.ct-pg--sales .ct-avatar { mix-blend-mode: multiply; }
+/* On the dark panel, multiply still erases the white PNG bg against the oval above */
+.ct-pg--tech  .ct-avatar { mix-blend-mode: multiply; }
 
 .ct-name {
   font-size: 16px;
